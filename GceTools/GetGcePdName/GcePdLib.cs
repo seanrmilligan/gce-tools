@@ -31,6 +31,9 @@ namespace GceTools
     // that includes this prefix plus the PD name that we care about.
     private const string GOOGLEPREFIX = "Google  ";
 
+    //TODO: substantiate with citation
+    private const uint NVME_MAX_LOG_SIZE = 4096;
+
     private const bool DEBUG = false;
     private static void WriteDebugLine(string line)
     {
@@ -53,6 +56,18 @@ namespace GceTools
         DWORD dwFlagsAndAttributes,
         HANDLE hTemplateFile
         );
+    
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool DeviceIoControl(
+      SafeFileHandle hDevice,
+      DWORD dwIoControlCode,
+      ref StorageAPI.STORAGE_PROPERTY_QUERY lpInBuffer,
+      DWORD nInBufferSize,
+      out StorageAPI.STORAGE_DEVICE_DESCRIPTOR lpOutBuffer,
+      int nOutBufferSize,
+      ref DWORD lpBytesReturned,
+      LPOVERLAPPED lpOverlapped
+    );
 
     // https://www.pinvoke.net/default.aspx/kernel32.deviceiocontrol
     // https://codereview.stackexchange.com/q/23264
@@ -84,6 +99,70 @@ namespace GceTools
     private static readonly uint IOCTL_STORAGE_QUERY_PROPERTY = CTL_CODE(
         IOCTL_STORAGE_BASE, 0x0500, METHOD_BUFFERED, FILE_ANY_ACCESS);
 
+    public static string GetBusType(string deviceId)
+    {
+      string physicalDrive = PHYSICALDRIVE + deviceId;
+      SafeFileHandle hDevice = CreateFile(physicalDrive,
+        (uint)WinAPI.FILE_ACCESS_FLAGS.GENERIC_READ |
+        (uint)WinAPI.FILE_ACCESS_FLAGS.GENERIC_WRITE,
+        (uint)WinAPI.FILE_SHARE.READ,
+        IntPtr.Zero,
+        (uint)WinAPI.CreateDisposition.OPEN_EXISTING,
+        0,
+        IntPtr.Zero
+      );
+      if (hDevice.IsInvalid)
+      {
+        var e = new Win32Exception(Marshal.GetLastWin32Error(),
+          String.Format("CreateFile({0}) failed. Is the drive number valid?",
+            physicalDrive));
+        WriteDebugLine(String.Format("Error: {0}", e.ToString()));
+        WriteDebugLine("Please use a valid physical drive number (e.g. " +
+                       "(Get-PhysicalDisk).DeviceId)");
+        throw e;
+      }
+
+      // https://stackoverflow.com/a/17354960/1230197
+      var query = new StorageAPI.STORAGE_PROPERTY_QUERY
+      {
+        PropertyId = StorageAPI.STORAGE_PROPERTY_QUERY.STORAGE_PROPERTY_ID.StorageDeviceProperty,
+        QueryType = StorageAPI.STORAGE_PROPERTY_QUERY.STORAGE_QUERY_TYPE.PropertyStandardQuery
+      };
+      var qsize = (uint)Marshal.SizeOf(query);
+      // https://stackoverflow.com/a/2069456/1230197
+      var result = default(StorageAPI.STORAGE_DEVICE_DESCRIPTOR);
+      var rsize = Marshal.SizeOf(result);
+      uint written = 0;
+      bool ok = DeviceIoControl(hDevice, IOCTL_STORAGE_QUERY_PROPERTY,
+        ref query, qsize, out result, rsize, ref written,
+        IntPtr.Zero);
+      if (!ok)
+      {
+        var e = new Win32Exception(Marshal.GetLastWin32Error(),
+          String.Format("DeviceIoControl({0}) failed", physicalDrive));
+        WriteDebugLine(String.Format("Error: {0}", e.ToString()));
+        hDevice.Close();
+        throw e;
+      }
+
+      Console.WriteLine($"Version:               {result.Version}");
+      Console.WriteLine($"Size:                  {result.Size}");
+      Console.WriteLine($"DeviceType:            {result.DeviceType}");
+      Console.WriteLine($"DeviceTypeModifier:    {result.DeviceTypeModifier}");
+      Console.WriteLine($"RemovableMedia:        {result.RemovableMedia}");
+      Console.WriteLine($"CommandQueueing:       {result.CommandQueueing}");
+      Console.WriteLine($"VendorIdOffset:        {result.VendorIdOffset}");
+      Console.WriteLine($"ProductIdOffset:       {result.ProductIdOffset}");
+      Console.WriteLine($"ProductRevisionOffset: {result.ProductRevisionOffset}");
+      Console.WriteLine($"SerialNumberOffset:    {result.SerialNumberOffset}");
+      Console.WriteLine($"BusType:               {result.BusType}");
+      Console.WriteLine($"RawPropertiesLength:   {result.RawPropertiesLength}");
+      Console.WriteLine($"RawDeviceProperties:   {result.RawDeviceProperties}");
+      
+      hDevice.Close();
+      StorageAPI.STORAGE_BUS_TYPE busType = result.BusType;
+      return busType.ToString();
+    }
     // deviceId is the physical disk number, e.g. from Get-PhysicalDisk. If the
     // device is determined to be a GCE PD then its name will be returned.
     //
@@ -234,6 +313,51 @@ namespace GceTools
       return null;
     }
 
+    public static string Get_GcePdName_Nvme(string deviceId)
+    {
+      string physicalDrive = PHYSICALDRIVE + deviceId;
+      SafeFileHandle hDevice = CreateFile(physicalDrive,
+        (uint)WinAPI.FILE_ACCESS_FLAGS.GENERIC_READ |
+        (uint)WinAPI.FILE_ACCESS_FLAGS.GENERIC_WRITE,
+        (uint)WinAPI.FILE_SHARE.READ,
+        IntPtr.Zero,
+        (uint)WinAPI.CreateDisposition.OPEN_EXISTING,
+        0,
+        IntPtr.Zero
+      );
+      if (hDevice.IsInvalid)
+      {
+        var e = new Win32Exception(Marshal.GetLastWin32Error(),
+          String.Format("CreateFile({0}) failed. Is the drive number valid?",
+            physicalDrive));
+        WriteDebugLine(String.Format("Error: {0}", e.ToString()));
+        WriteDebugLine("Please use a valid physical drive number (e.g. " +
+                       "(Get-PhysicalDisk).DeviceId)");
+        throw e;
+      }
+      
+      // https://stackoverflow.com/a/17354960/1230197
+      var query = new StorageAPI.STORAGE_PROPERTY_QUERY
+      {
+        PropertyId = StorageAPI.STORAGE_PROPERTY_QUERY.STORAGE_PROPERTY_ID.StorageAdapterProtocolSpecificProperty,
+        QueryType = StorageAPI.STORAGE_PROPERTY_QUERY.STORAGE_QUERY_TYPE.PropertyStandardQuery
+      };
+
+      var protocolSpecificData = default(StorageAPI.STORAGE_PROTOCOL_SPECIFIC_DATA);
+      var psdSize = Marshal.SizeOf(protocolSpecificData);
+      protocolSpecificData = new StorageAPI.STORAGE_PROTOCOL_SPECIFIC_DATA
+      {
+        ProtocolType = StorageAPI.STORAGE_PROTOCOL_TYPE.ProtocolTypeNvme,
+        DataType = (uint)StorageAPI.STORAGE_PROTOCOL_NVME_DATA_TYPE.NVMeDataTypeIdentify,
+        ProtocolDataRequestValue = (uint)StorageAPI.NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_CONTROLLER,
+        ProtocolDataRequestSubValue = 0,
+        ProtocolDataOffset = (uint)psdSize,
+        ProtocolDataLength = NVME_MAX_LOG_SIZE
+      };
+
+      return string.Empty;
+    }
+    
     // Returns a list of the deviceIds of all of the physical disks attached
     // to the system. This is equivalent to running
     // `(Get-PhysicalDisk).deviceId` in PowerShell.

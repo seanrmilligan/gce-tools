@@ -4,6 +4,11 @@
 using System;
 using System.Runtime.InteropServices;
 
+using BOOLEAN = System.Boolean;
+using BYTE = System.Byte;
+using DWORD = System.UInt32;
+using ULONG = System.UInt32;
+
 namespace AlphaOmega.Debug.Native
 {
   /// <summary>Storage IOCTL structures</summary>
@@ -11,6 +16,32 @@ namespace AlphaOmega.Debug.Native
   {
     // pjh: was originally in Constant.cs.
     public const Int32 BUFFER_SIZE = 512;
+
+    public enum STORAGE_BUS_TYPE
+    {
+      BusTypeUnknown,
+      BusTypeScsi,
+      BusTypeAtapi,
+      BusTypeAta,
+      BusType1394,
+      BusTypeSsa,
+      BusTypeFibre,
+      BusTypeUsb,
+      BusTypeRAID,
+      BusTypeiScsi,
+      BusTypeSas,
+      BusTypeSata,
+      BusTypeSd,
+      BusTypeMmc,
+      BusTypeVirtual,
+      BusTypeFileBackedVirtual,
+      BusTypeSpaces,
+      BusTypeNvme,
+      BusTypeSCM,
+      BusTypeUfs,
+      BusTypeMax,
+      BusTypeMaxReserved
+    }
 
     /// <summary>Indicates the properties of a storage device or adapter to retrieve as the input buffer passed to the <see cref="T:Constant.IOCTL_STORAGE.QUERY_PROPERTY"/> control code.</summary>
     [StructLayout(LayoutKind.Sequential)]
@@ -44,17 +75,38 @@ namespace AlphaOmega.Debug.Native
         /// <summary>Indicates that the caller is querying for the logical block provisioning descriptor, usually to detect whether the storage system uses thin provisioning.</summary>
         StorageDeviceLBProvisioningProperty = 0xB,
         /// <summary>Indicates that the caller is querying for the power optical disk drive descriptor.</summary>
-        StorageDeviceZeroPowerProperty = 0xC,
+        StorageDevicePowerProperty = 0xC,
         /// <summary>Indicates that the caller is querying for the write offload descriptor.</summary>
         StorageDeviceCopyOffloadProperty = 0xD,
         /// <summary>Indicates that the caller is querying for the device resiliency descriptor.</summary>
         StorageDeviceResiliencyProperty = 0xE,
+        StorageDeviceMediumProductType,
+        StorageAdapterRpmbProperty,
+        StorageAdapterCryptoProperty,
+        StorageDeviceIoCapabilityProperty,
+        StorageAdapterProtocolSpecificProperty,
+        StorageDeviceProtocolSpecificProperty,
+        StorageAdapterTemperatureProperty,
+        StorageDeviceTemperatureProperty,
+        StorageAdapterPhysicalTopologyProperty,
+        StorageDevicePhysicalTopologyProperty,
+        StorageDeviceAttributesProperty,
+        StorageDeviceManagementStatus,
+        StorageAdapterSerialNumberProperty,
+        StorageDeviceLocationProperty,
+        StorageDeviceNumaProperty,
+        StorageDeviceZonedDeviceProperty,
+        StorageDeviceUnsafeShutdownCount,
+        StorageDeviceEnduranceProperty,
+        StorageDeviceLedStateProperty,
+        StorageDeviceSelfEncryptionProperty,
+        StorageFruIdProperty
       }
       /// <summary>Types of queries</summary>
       public enum STORAGE_QUERY_TYPE : int
       {
         /// <summary>Retrieves the descriptor</summary>
-        PropertyStandardQuery = 0,
+         PropertyStandardQuery = 0,
         /// <summary>Used to test whether the descriptor is supported</summary>
         PropertyExistsQuery = 1,
         /// <summary>Used to retrieve a mask of writeable fields in the descriptor</summary>
@@ -70,6 +122,25 @@ namespace AlphaOmega.Debug.Native
       /// <summary>Contains an array of bytes that can be used to retrieve additional parameters for specific queries.</summary>
       [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
       public Byte[] AdditionalParameters;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct STORAGE_DEVICE_DESCRIPTOR
+    {
+      public DWORD Version;
+      public DWORD Size;
+      public BYTE DeviceType;
+      public BYTE DeviceTypeModifier;
+      public BOOLEAN RemovableMedia;
+      public BOOLEAN CommandQueueing;
+      public DWORD VendorIdOffset;
+      public DWORD ProductIdOffset;
+      public DWORD ProductRevisionOffset;
+      public DWORD SerialNumberOffset;
+      public STORAGE_BUS_TYPE BusType;
+      public DWORD RawPropertiesLength;
+      [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
+      public BYTE[] RawDeviceProperties; // array of size 1
     }
 
     /// <summary>Used with the <see cref="T:Constant.IOCTL_STORAGE.QUERY_PROPERTY"/> control code request to retrieve the device ID descriptor data for a device.</summary>
@@ -149,5 +220,51 @@ namespace AlphaOmega.Debug.Native
       [MarshalAs(UnmanagedType.ByValArray, SizeConst = BUFFER_SIZE)]
       public Byte[] Identifier;
     }
+    
+    public enum STORAGE_PROTOCOL_TYPE
+    {
+      ProtocolTypeUnknown,
+      ProtocolTypeScsi,
+      ProtocolTypeAta,
+      ProtocolTypeNvme,
+      ProtocolTypeSd,
+      ProtocolTypeUfs,
+      ProtocolTypeProprietary,
+      ProtocolTypeMaxReserved
+    }
+    
+    [StructLayout(LayoutKind.Sequential)]
+    public struct STORAGE_PROTOCOL_SPECIFIC_DATA {
+
+      public STORAGE_PROTOCOL_TYPE ProtocolType;
+      public ULONG   DataType;                 
+
+      public ULONG   ProtocolDataRequestValue;
+      public ULONG   ProtocolDataRequestSubValue;
+
+      public ULONG   ProtocolDataOffset;         
+      public ULONG   ProtocolDataLength;
+
+      public ULONG   FixedProtocolReturnData;
+      public ULONG Reserved; // Reserved[3];
+    }
+    
+    public enum STORAGE_PROTOCOL_NVME_DATA_TYPE {
+      NVMeDataTypeUnknown,
+      NVMeDataTypeIdentify,
+      NVMeDataTypeLogPage,
+      NVMeDataTypeFeature
+    }
+    
+    //
+    // From nvme.h
+    // NVMe Identify Command
+    //
+    public enum NVME_IDENTIFY_CNS_CODES
+    {
+      NVME_IDENTIFY_CNS_SPECIFIC_NAMESPACE            = 0,
+      NVME_IDENTIFY_CNS_CONTROLLER                    = 1,
+      NVME_IDENTIFY_CNS_ACTIVE_NAMESPACES             = 2,       // A list of up to 1024 active namespace IDs is returned to the host containing active namespaces with a namespace identifier greater than the value specified in the Namespace Identifier (CDW1.NSID) field.
+    };
   }
 }

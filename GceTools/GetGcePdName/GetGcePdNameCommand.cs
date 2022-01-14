@@ -103,7 +103,7 @@ namespace GetGcePdName
         {
           PdName pd = new PdName
           {
-            Name = GceTools.GcePdLib.Get_GcePdName(deviceIds[i]),
+            Name = GceTools.GcePdLib.GetBusType(deviceIds[i]),
             DeviceId = deviceIds[i]
           };
           WriteObject(pd);

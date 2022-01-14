@@ -4,9 +4,10 @@ using System.ComponentModel;  // for Win32Exception
 
 // https://github.com/DKorablin/DeviceIoControl
 using AlphaOmega.Debug;
-using AlphaOmega.Debug.Native;
+using Google.Cloud.Storage.Windows.nvme;
+using Google.Cloud.Storage.Windows.winioctl;
 
-namespace GceTools
+namespace Google.Cloud.Storage
 {
   using Microsoft.Win32.SafeHandles;
   using System.Collections.Generic;
@@ -61,9 +62,9 @@ namespace GceTools
     static extern bool DeviceIoControl(
       SafeFileHandle hDevice,
       DWORD dwIoControlCode,
-      ref StorageAPI.STORAGE_PROPERTY_QUERY lpInBuffer,
+      ref STORAGE_PROPERTY_QUERY lpInBuffer,
       DWORD nInBufferSize,
-      out StorageAPI.STORAGE_DEVICE_DESCRIPTOR lpOutBuffer,
+      out STORAGE_DEVICE_DESCRIPTOR lpOutBuffer,
       int nOutBufferSize,
       ref DWORD lpBytesReturned,
       LPOVERLAPPED lpOverlapped
@@ -77,17 +78,16 @@ namespace GceTools
     static extern bool DeviceIoControl(
         SafeFileHandle hDevice,
         DWORD dwIoControlCode,
-        ref StorageAPI.STORAGE_PROPERTY_QUERY lpInBuffer,
+        ref STORAGE_PROPERTY_QUERY lpInBuffer,
         DWORD nInBufferSize,
-        out StorageAPI.STORAGE_DEVICE_ID_DESCRIPTOR lpOutBuffer,
+        out STORAGE_DEVICE_ID_DESCRIPTOR lpOutBuffer,
         int nOutBufferSize,
         ref DWORD lpBytesReturned,
         LPOVERLAPPED lpOverlapped
         );
 
     // Copied from C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\winioctl.h
-    private static uint CTL_CODE(uint DeviceType, uint Function,
-      uint Method, uint Access)
+    private static uint CTL_CODE(uint DeviceType, uint Function, uint Method, uint Access)
     {
       return (DeviceType << 16) | (Access << 14) | (Function) << 2 | Method;
     }
@@ -123,14 +123,14 @@ namespace GceTools
       }
 
       // https://stackoverflow.com/a/17354960/1230197
-      var query = new StorageAPI.STORAGE_PROPERTY_QUERY
+      var query = new STORAGE_PROPERTY_QUERY
       {
-        PropertyId = StorageAPI.STORAGE_PROPERTY_QUERY.STORAGE_PROPERTY_ID.StorageDeviceProperty,
-        QueryType = StorageAPI.STORAGE_PROPERTY_QUERY.STORAGE_QUERY_TYPE.PropertyStandardQuery
+        PropertyId = STORAGE_PROPERTY_ID.StorageDeviceProperty,
+        QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
       };
       var qsize = (uint)Marshal.SizeOf(query);
       // https://stackoverflow.com/a/2069456/1230197
-      var result = default(StorageAPI.STORAGE_DEVICE_DESCRIPTOR);
+      var result = default(STORAGE_DEVICE_DESCRIPTOR);
       var rsize = Marshal.SizeOf(result);
       uint written = 0;
       bool ok = DeviceIoControl(hDevice, IOCTL_STORAGE_QUERY_PROPERTY,
@@ -160,7 +160,7 @@ namespace GceTools
       Console.WriteLine($"RawDeviceProperties:   {result.RawDeviceProperties}");
       
       hDevice.Close();
-      StorageAPI.STORAGE_BUS_TYPE busType = result.BusType;
+      STORAGE_BUS_TYPE busType = result.BusType;
       return busType.ToString();
     }
     // deviceId is the physical disk number, e.g. from Get-PhysicalDisk. If the
@@ -194,14 +194,14 @@ namespace GceTools
       }
 
       // https://stackoverflow.com/a/17354960/1230197
-      var query = new StorageAPI.STORAGE_PROPERTY_QUERY
+      var query = new STORAGE_PROPERTY_QUERY
       {
-        PropertyId = StorageAPI.STORAGE_PROPERTY_QUERY.STORAGE_PROPERTY_ID.StorageDeviceIdProperty,  // page 83
-        QueryType = StorageAPI.STORAGE_PROPERTY_QUERY.STORAGE_QUERY_TYPE.PropertyStandardQuery
+        PropertyId = STORAGE_PROPERTY_ID.StorageDeviceIdProperty,  // page 83
+        QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
       };
       var qsize = (uint)Marshal.SizeOf(query);
       // https://stackoverflow.com/a/2069456/1230197
-      var result = default(StorageAPI.STORAGE_DEVICE_ID_DESCRIPTOR);
+      var result = default(STORAGE_DEVICE_ID_DESCRIPTOR);
       var rsize = Marshal.SizeOf(result);
       uint written = 0;
       bool ok = DeviceIoControl(hDevice, IOCTL_STORAGE_QUERY_PROPERTY,
@@ -229,9 +229,9 @@ namespace GceTools
         // STORAGE_DEVICE_ID_DESCRIPTOR for the combined size of all the
         // identifiers so it's an upper bound on the size of this one.
         IntPtr storageIdentifierBuffer =
-          Marshal.AllocHGlobal(StorageAPI.BUFFER_SIZE);
+          Marshal.AllocHGlobal(512);
         int identifiersBufferLeft =
-          StorageAPI.BUFFER_SIZE - identifierBufferStart;
+          512 - identifierBufferStart;
         WriteDebugLine(
           String.Format("getting storageIdentifier {0} from memory [{1}, {2})",
             i, identifierBufferStart,
@@ -240,7 +240,7 @@ namespace GceTools
             storageIdentifierBuffer, identifiersBufferLeft);
 
         var storageIdentifier =
-          Marshal.PtrToStructure<StorageAPI.STORAGE_IDENTIFIER>(
+          Marshal.PtrToStructure<STORAGE_IDENTIFIER>(
             storageIdentifierBuffer);
 
         WriteDebugLine(String.Format("storageIdentifier type: {0} ({1})",
@@ -250,8 +250,8 @@ namespace GceTools
         WriteDebugLine(String.Format("storageIdentifier size: {0}",
           (int)storageIdentifier.IdentifierSize));
 
-        if (storageIdentifier.Type == StorageAPI.STORAGE_IDENTIFIER.STORAGE_IDENTIFIER_TYPE.StorageIdTypeVendorId &&
-            storageIdentifier.Association == StorageAPI.STORAGE_IDENTIFIER.STORAGE_ASSOCIATION_TYPE.StorageIdAssocDevice)
+        if (storageIdentifier.Type == STORAGE_IDENTIFIER_TYPE.StorageIdTypeVendorId &&
+            storageIdentifier.Association == STORAGE_ASSOCIATION_TYPE.StorageIdAssocDevice)
         {
           IntPtr identifierData =
             Marshal.AllocHGlobal(storageIdentifier.IdentifierSize + 1);
@@ -337,19 +337,19 @@ namespace GceTools
       }
       
       // https://stackoverflow.com/a/17354960/1230197
-      var query = new StorageAPI.STORAGE_PROPERTY_QUERY
+      var query = new STORAGE_PROPERTY_QUERY
       {
-        PropertyId = StorageAPI.STORAGE_PROPERTY_QUERY.STORAGE_PROPERTY_ID.StorageAdapterProtocolSpecificProperty,
-        QueryType = StorageAPI.STORAGE_PROPERTY_QUERY.STORAGE_QUERY_TYPE.PropertyStandardQuery
+        PropertyId = STORAGE_PROPERTY_ID.StorageAdapterProtocolSpecificProperty,
+        QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
       };
 
-      var protocolSpecificData = default(StorageAPI.STORAGE_PROTOCOL_SPECIFIC_DATA);
+      var protocolSpecificData = default(STORAGE_PROTOCOL_SPECIFIC_DATA);
       var psdSize = Marshal.SizeOf(protocolSpecificData);
-      protocolSpecificData = new StorageAPI.STORAGE_PROTOCOL_SPECIFIC_DATA
+      protocolSpecificData = new STORAGE_PROTOCOL_SPECIFIC_DATA
       {
-        ProtocolType = StorageAPI.STORAGE_PROTOCOL_TYPE.ProtocolTypeNvme,
-        DataType = (uint)StorageAPI.STORAGE_PROTOCOL_NVME_DATA_TYPE.NVMeDataTypeIdentify,
-        ProtocolDataRequestValue = (uint)StorageAPI.NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_CONTROLLER,
+        ProtocolType = STORAGE_PROTOCOL_TYPE.ProtocolTypeNvme,
+        DataType = (uint)STORAGE_PROTOCOL_NVME_DATA_TYPE.NVMeDataTypeIdentify,
+        ProtocolDataRequestValue = (uint)NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_CONTROLLER,
         ProtocolDataRequestSubValue = 0,
         ProtocolDataOffset = (uint)psdSize,
         ProtocolDataLength = NVME_MAX_LOG_SIZE

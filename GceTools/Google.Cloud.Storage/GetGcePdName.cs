@@ -3,7 +3,7 @@
 
 using System;
 
-namespace GceTools
+namespace Google.Cloud.Storage
 {
   public class GetGcePdName
   {

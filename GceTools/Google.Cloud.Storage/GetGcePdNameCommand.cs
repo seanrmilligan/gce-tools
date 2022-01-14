@@ -9,7 +9,7 @@
 //     Studio will not overwrite the .dll while the powershell that imported it
 //     is still running.
 
-namespace GetGcePdName
+namespace Google.Cloud.Storage
 {
   using System;  // for InvalidOperationException
   using System.ComponentModel;  // for Win32Exception
@@ -75,7 +75,7 @@ namespace GetGcePdName
 
       public override string ToString()
       {
-        return String.Format("{0}\t{1}", Name, DeviceId);
+        return $"{Name}\t{DeviceId}";
       }
     }
     #endregion PdName
@@ -86,7 +86,7 @@ namespace GetGcePdName
       if (deviceIds == null)
       {
         // List all physical drives if none specified.
-        deviceIds = GceTools.GcePdLib.GetAllPhysicalDeviceIds();
+        deviceIds = GcePdLib.GetAllPhysicalDeviceIds();
         if (deviceIds.Length == 0)
         {
           var ex = new InvalidOperationException(
@@ -103,24 +103,20 @@ namespace GetGcePdName
         {
           PdName pd = new PdName
           {
-            Name = GceTools.GcePdLib.GetBusType(deviceIds[i]),
+            Name = GcePdLib.GetBusType(deviceIds[i]),
             DeviceId = deviceIds[i]
           };
           WriteObject(pd);
         }
-        catch (Exception ex)
+        catch (Win32Exception ex)
         {
-          if (ex is Win32Exception)
-          {
-            WriteError(new ErrorRecord(ex, ex.ToString(),
+          WriteError(new ErrorRecord(ex, ex.ToString(),
               ErrorCategory.ReadError, deviceIds[i]));
-            continue;
-          } else if (ex is InvalidOperationException)
-          {
-            // InvalidOperation indicates that the deviceId is not for a GCE PD;
-            // just ignore it.
-            continue;
-          }
+        }
+        catch (InvalidOperationException)
+        {
+          // InvalidOperation indicates that the deviceId is not for a GCE PD;
+          // just ignore it.
         }
       }
     }

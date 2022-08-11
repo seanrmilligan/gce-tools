@@ -1,6 +1,9 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+
+using System;
 using System.Runtime.InteropServices;
 
+// Adapted from winioctl.h
 namespace Google.Cloud.Storage.Windows.winioctl
 {
     // Adapted from C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\winioctl.h

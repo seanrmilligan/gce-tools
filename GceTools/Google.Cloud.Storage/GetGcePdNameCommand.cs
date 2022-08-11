@@ -9,6 +9,10 @@
 //     Studio will not overwrite the .dll while the powershell that imported it
 //     is still running.
 
+using System.Collections.Generic;
+using System.Linq;
+using Google.Cloud.Storage.Extensions;
+
 namespace Google.Cloud.Storage
 {
   using System;  // for InvalidOperationException
@@ -45,16 +49,16 @@ namespace Google.Cloud.Storage
     //   Get-GcePdName 1,3,5
     //   @(1,3,5) | Get-GcePdName
     //   Get-PhysicalDisk | Get-GcePdName
-    private string[] deviceIds;
+    private IEnumerable<string> _deviceIds;
     [Parameter(
       Position = 0,
       ValueFromPipeline = true,
       ValueFromPipelineByPropertyName = true)]
     [ValidateNotNullOrEmpty]
-    public string[] DeviceId
+    public IEnumerable<string> DeviceId
     {
-      get { return deviceIds; }
-      set { deviceIds = value; }
+      get => _deviceIds;
+      set => _deviceIds = value;
     }
     #endregion Parameters
 
@@ -83,35 +87,35 @@ namespace Google.Cloud.Storage
     #region Cmdlet Overrides
     protected override void ProcessRecord()
     {
-      if (deviceIds == null)
+      if (_deviceIds == null)
       {
         // List all physical drives if none specified.
-        deviceIds = GcePdLib.GetAllPhysicalDeviceIds();
-        if (deviceIds.Length == 0)
-        {
-          var ex = new InvalidOperationException(
-            "No device IDs specified and no physical drives were found");
-          WriteError(new ErrorRecord(ex, ex.ToString(),
-            ErrorCategory.InvalidOperation, ""));
-          return;
-        }
+        _deviceIds = StorageDevice.GetAllPhysicalDeviceIds();
+        //if (_deviceIds.None())
+        //{
+        //  var ex = new InvalidOperationException(
+        //    "No device IDs specified and no physical drives were found");
+        //  WriteError(new ErrorRecord(ex, ex.ToString(),
+        //    ErrorCategory.InvalidOperation, ""));
+        //  return;
+        //}
       }
 
-      for (int i = 0; i < deviceIds.Length; ++i)
+      foreach (string deviceId in _deviceIds)
       {
         try
         {
           PdName pd = new PdName
           {
-            Name = GcePdLib.GetBusType(deviceIds[i]),
-            DeviceId = deviceIds[i]
+            Name = new StorageDevice(deviceId).Get_GcePdName_Nvme(),
+            DeviceId = deviceId
           };
           WriteObject(pd);
         }
         catch (Win32Exception ex)
         {
           WriteError(new ErrorRecord(ex, ex.ToString(),
-              ErrorCategory.ReadError, deviceIds[i]));
+              ErrorCategory.ReadError, deviceId));
         }
         catch (InvalidOperationException)
         {

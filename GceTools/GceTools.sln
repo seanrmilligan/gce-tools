@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.329
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Cloud.Storage", "Google.Cloud.Storage\Google.Cloud.Storage.csproj", "{F28905DB-BA65-49B0-B798-038CB4326EF4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Cloud.Storage.Tests", "Google.Cloud.Storage.Tests\Google.Cloud.Storage.Tests.csproj", "{EAAEEEE3-DDB1-4E80-9F0E-BBCB031F3AB9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{F28905DB-BA65-49B0-B798-038CB4326EF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F28905DB-BA65-49B0-B798-038CB4326EF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F28905DB-BA65-49B0-B798-038CB4326EF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EAAEEEE3-DDB1-4E80-9F0E-BBCB031F3AB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EAAEEEE3-DDB1-4E80-9F0E-BBCB031F3AB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EAAEEEE3-DDB1-4E80-9F0E-BBCB031F3AB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EAAEEEE3-DDB1-4E80-9F0E-BBCB031F3AB9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

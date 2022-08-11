@@ -1,4 +1,7 @@
-﻿namespace Google.Cloud.Storage.Windows.nvme
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+
+// Adapted from nvme.h
+namespace Google.Cloud.Storage.Windows.nvme
 {
     public enum NVME_IDENTIFY_CNS_CODES
     {

@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// https://docs.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-storage_device_descriptor
+using System.Runtime.InteropServices;
 using BOOLEAN = System.Boolean;
 using BYTE = System.Byte;
 using DWORD = System.UInt32;
@@ -6,23 +8,121 @@ using ULONG = System.UInt32;
 
 namespace Google.Cloud.Storage.Windows.winioctl
 {
-    [StructLayout(LayoutKind.Sequential)]
-    public struct STORAGE_DEVICE_DESCRIPTOR
+    /// <summary>
+    /// Used in conjunction with the IOCTL_STORAGE_QUERY_PROPERTY control code
+    /// to retrieve the storage device descriptor data for a device.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public readonly struct STORAGE_DEVICE_DESCRIPTOR
     {
-        public DWORD Version;
-        public DWORD Size;
-        public BYTE DeviceType;
-        public BYTE DeviceTypeModifier;
-        public BOOLEAN RemovableMedia;
-        public BOOLEAN CommandQueueing;
-        public DWORD VendorIdOffset;
-        public DWORD ProductIdOffset;
-        public DWORD ProductRevisionOffset;
-        public DWORD SerialNumberOffset;
-        public STORAGE_BUS_TYPE BusType;
-        public DWORD RawPropertiesLength;
+        /// <summary>
+        /// Contains the size of this structure, in bytes. The value of this
+        /// member will change as members are added to the structure.
+        /// </summary>
+        public readonly DWORD Version;
+        
+        /// <summary>
+        /// Specifies the total size of the descriptor, in bytes, which may
+        /// include vendor ID, product ID, product revision, device serial
+        /// number strings and bus-specific data which are appended to the
+        /// structure.
+        /// </summary>
+        public readonly DWORD Size;
+        
+        /// <summary>
+        /// Specifies the device type as defined by the Small Computer Systems
+        /// Interface (SCSI) specification.
+        /// </summary>
+        public readonly BYTE DeviceType;
+        
+        /// <summary>
+        /// Specifies the device type modifier, if any, as defined by the SCSI
+        /// specification. If no device type modifier exists, this member is
+        /// zero.
+        /// </summary>
+        public readonly BYTE DeviceTypeModifier;
+        
+        /// <summary>
+        /// Indicates when TRUE that the device's media (if any) is removable.
+        /// If the device has no media, this member should be ignored. When
+        /// FALSE the device's media is not removable.
+        /// </summary>
+        public readonly BOOLEAN RemovableMedia;
+        
+        /// <summary>
+        /// Indicates when TRUE that the device supports multiple outstanding
+        /// commands (SCSI tagged queuing or equivalent). When FALSE, the device
+        /// does not support SCSI-tagged queuing or the equivalent.
+        /// </summary>
+        public readonly BOOLEAN CommandQueueing;
+       
+        /// <summary>
+        /// Specifies the byte offset from the beginning of the structure to a
+        /// null-terminated ASCII string that contains the device's vendor ID.
+        /// If the device has no vendor ID, this member is zero.
+        /// </summary>
+        public readonly DWORD VendorIdOffset;
+        
+        /// <summary>
+        /// Specifies the byte offset from the beginning of the structure to a
+        /// null-terminated ASCII string that contains the device's product ID.
+        /// If the device has no product ID, this member is zero.
+        /// </summary>
+        public readonly DWORD ProductIdOffset;
+       
+        /// <summary>
+        /// Specifies the byte offset from the beginning of the structure to a
+        /// null-terminated ASCII string that contains the device's product
+        /// revision string. If the device has no product revision string, this
+        /// member is zero.
+        /// </summary>
+        public readonly DWORD ProductRevisionOffset;
+        
+        /// <summary>
+        /// Specifies the byte offset from the beginning of the structure to a
+        /// null-terminated ASCII string that contains the device's serial
+        /// number. If the device has no serial number, this member is zero.
+        /// </summary>
+        public readonly DWORD SerialNumberOffset;
+        
+        /// <summary>
+        /// Specifies an enumerator value of type STORAGE_BUS_TYPE that
+        /// indicates the type of bus to which the device is connected. This
+        /// should be used to interpret the raw device properties at the end of
+        /// this structure (if any).
+        /// </summary>
+        public readonly STORAGE_BUS_TYPE BusType;
+        
+        /// <summary>
+        /// Indicates the number of bytes of bus-specific data that have been
+        /// appended to this descriptor.
+        /// </summary>
+        public readonly DWORD RawPropertiesLength;
 
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
-        public BYTE[] RawDeviceProperties; // array of size 1
+        /// <summary>
+        /// Contains an array of length one that serves as a place holder for
+        /// the first byte of the bus specific property data.
+        /// </summary>
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1024)]
+        public readonly BYTE[] RawDeviceProperties;
+
+        public override string ToString()
+        {
+            return string.Join("\n", new[] {
+                $"Version:               {Version}",
+                $"Size:                  {Size}",
+                $"DeviceType:            {DeviceType}",
+                $"DeviceTypeModifier:    {DeviceTypeModifier}",
+                $"RemovableMedia:        {RemovableMedia}",
+                $"CommandQueueing:       {CommandQueueing}",
+                $"VendorIdOffset:        {VendorIdOffset}",
+                $"ProductIdOffset:       {ProductIdOffset}",
+                $"ProductRevisionOffset: {ProductRevisionOffset}",
+                $"SerialNumberOffset:    {SerialNumberOffset}",
+                $"BusType:               {BusType}",
+                $"RawPropertiesLength:   {RawPropertiesLength}",
+                $"RawDeviceProperties:   {System.Text.Encoding.ASCII.GetString(RawDeviceProperties)}"
+            });
+        }
     }
 }

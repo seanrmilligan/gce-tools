@@ -72,11 +72,11 @@ namespace Google.Cloud.Storage
     {
       return (deviceType << 16) | (access << 14) | (function << 2) | method;
     }
-    // static readonly: https://stackoverflow.com/a/16143924/1230197
-    private static readonly uint METHOD_BUFFERED = 0;
-    private static readonly uint FILE_ANY_ACCESS = 0;
-    private static readonly uint FILE_DEVICE_MASS_STORAGE = 0x0000002d;
-    private static readonly uint IOCTL_STORAGE_BASE = FILE_DEVICE_MASS_STORAGE;
+    
+    private const uint METHOD_BUFFERED = 0;
+    private const uint FILE_ANY_ACCESS = 0;
+    private const uint FILE_DEVICE_MASS_STORAGE = 0x0000002d;
+    private const uint IOCTL_STORAGE_BASE = FILE_DEVICE_MASS_STORAGE;
     private static readonly uint IOCTL_STORAGE_QUERY_PROPERTY = CTL_CODE(
         IOCTL_STORAGE_BASE, 0x0500, METHOD_BUFFERED, FILE_ANY_ACCESS);
 
@@ -262,14 +262,13 @@ namespace Google.Cloud.Storage
     public string Get_GcePdName_Nvme()
     {
       var protocolSpecificData = default(STORAGE_PROTOCOL_SPECIFIC_DATA);
-      var psdSize = Marshal.SizeOf(protocolSpecificData);
       protocolSpecificData = new STORAGE_PROTOCOL_SPECIFIC_DATA
       {
         ProtocolType = STORAGE_PROTOCOL_TYPE.ProtocolTypeNvme,
         DataType = (uint)STORAGE_PROTOCOL_NVME_DATA_TYPE.NVMeDataTypeIdentify,
         ProtocolDataRequestValue = (uint)NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_CONTROLLER,
         ProtocolDataRequestSubValue = 0,
-        ProtocolDataOffset = (uint)psdSize,
+        ProtocolDataOffset = (uint)Marshal.SizeOf(protocolSpecificData),
         ProtocolDataLength = NvmeMaxLogSize
       };
       

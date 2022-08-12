@@ -17,13 +17,21 @@ namespace Google.Cloud.Storage.Windows.winioctl
         /// Indicates whether the caller is requesting a device descriptor, an
         /// adapter descriptor, a write cache property, a device unique ID
         /// (DUID), or the device identifiers provided in the device's SCSI
-        /// vital product data (VPD) page.
+        /// vital product data (VPD) page.  For a list of the property IDs that
+        /// can be assigned to this member, see
+        /// <see cref="STORAGE_PROPERTY_ID"/>.
         /// </summary>
         public STORAGE_PROPERTY_ID PropertyId;
         
         /// <summary>
         /// Contains flags indicating the type of query to be performed as
         /// enumerated by the <see cref="STORAGE_QUERY_TYPE"/> enumeration.
+        ///
+        /// PropertyStandardQuery (0) Instructs the port driver to report a
+        /// device descriptor, an adapter descriptor or a unique hardware device
+        /// ID (DUID).
+        /// PropertyExistsQuery (1) Instructs the port driver to report whether
+        /// the descriptor is supported.
         /// </summary>
         public STORAGE_QUERY_TYPE QueryType;
         

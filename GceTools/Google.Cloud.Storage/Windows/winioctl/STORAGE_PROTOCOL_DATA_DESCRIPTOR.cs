@@ -7,10 +7,23 @@ using DWORD = System.UInt32;
 namespace Google.Cloud.Storage.Windows.winioctl
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct STORAGE_PROTOCOL_DATA_DESCRIPTOR
+    public readonly struct STORAGE_PROTOCOL_DATA_DESCRIPTOR
     {
-        DWORD                          Version;
-        DWORD                          Size;
-        STORAGE_PROTOCOL_SPECIFIC_DATA ProtocolSpecificData;
+        /// <summary>
+        /// The version of this structure.
+        /// </summary>
+        public readonly DWORD Version;
+        
+        /// <summary>
+        /// The total size of the descriptor, including the space for all
+        /// protocol data.
+        /// </summary>
+        public readonly DWORD Size;
+        
+        /// <summary>
+        /// The protocol-specific data, of type
+        /// <see cref="STORAGE_PROTOCOL_SPECIFIC_DATA"/>.
+        /// </summary>
+        public readonly STORAGE_PROTOCOL_SPECIFIC_DATA ProtocolSpecificData;
     } 
 }

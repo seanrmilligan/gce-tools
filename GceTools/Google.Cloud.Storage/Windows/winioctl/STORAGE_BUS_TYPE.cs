@@ -11,52 +11,52 @@ namespace Google.Cloud.Storage.Windows.winioctl
         /// Value: 0x00
         /// Unknown bus type.
         /// </summary>
-        BusTypeUnknown,
+        BusTypeUnknown = 0,
         
         /// <summary>
         /// SCSI bus.
         /// </summary>
-        BusTypeScsi,
+        BusTypeScsi = 1,
         
         /// <summary>
         /// ATAPI bus.
         /// </summary>
-        BusTypeAtapi,
+        BusTypeAtapi = 2,
         
         /// <summary>
         /// ATA bus.
         /// </summary>
-        BusTypeAta,
+        BusTypeAta = 3,
         
         /// <summary>
         /// IEEE-1394 bus.
         /// </summary>
-        BusType1394,
+        BusType1394 = 4,
         
         /// <summary>
         /// SSA bus.
         /// </summary>
-        BusTypeSsa,
+        BusTypeSsa = 5,
         
         /// <summary>
         /// Fibre Channel bus.
         /// </summary>
-        BusTypeFibre,
+        BusTypeFibre = 6,
         
         /// <summary>
         /// USB bus.
         /// </summary>
-        BusTypeUsb,
+        BusTypeUsb = 7,
         
         /// <summary>
         /// RAID bus.
         /// </summary>
-        BusTypeRAID,
+        BusTypeRAID = 8,
         
         /// <summary>
         /// 
         /// </summary>
-        BusTypeiScsi,
+        BusTypeiScsi = 9,
         
         /// <summary>
         /// Serial Attached SCSI (SAS) bus.

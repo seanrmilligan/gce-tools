@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 // Adapted from winioctl.h
 namespace Google.Cloud.Storage.Windows.winioctl
 {
+    // const int StoragePropertyQuerySize = 1024;
+    
     /// <summary>
     /// Indicates the properties of a storage device or adapter to retrieve as
     /// the input buffer passed to the

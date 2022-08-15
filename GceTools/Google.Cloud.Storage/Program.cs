@@ -24,6 +24,9 @@ namespace Google.Cloud.Storage
     [Option(longName: "bus-type")]
     public bool BusType { get; set; }
     
+    [Option(longName: "nvme-identify")]
+    public bool NvmeIdentify { get; set; }
+    
     [Option(longName: "storage-adapter-descriptor")]
     public bool StorageAdapterDescriptor { get; set; }
     
@@ -65,6 +68,7 @@ namespace Google.Cloud.Storage
             .ToList();
 
           if (options.BusType) ListBusTypes(devices);
+          if (options.NvmeIdentify) NvmeIdentify(devices);
           if (options.StorageAdapterDescriptor) ListAdapterDescriptors(devices);
           if (options.StorageDeviceDescriptor) ListDeviceDescriptors(devices);
           
@@ -110,6 +114,13 @@ namespace Google.Cloud.Storage
       }
     }
 
+    private static void NvmeIdentify(List<StorageDevice> devices)
+    {
+      foreach (StorageDevice device in devices)
+      {
+        Console.WriteLine(device.Get_GcePdName_Nvme());
+      }
+    }
     private static void WriteDebugLine(string line)
     {
       if (Verbose)

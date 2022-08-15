@@ -6,7 +6,7 @@ namespace Google.Cloud.Storage.Windows.winioctl
     /// The STORAGE_ASSOCIATION_TYPE enumeration indicates whether a storage
     /// descriptor identifies a device or a port.
     /// </summary>
-    public enum STORAGE_ASSOCIATION_TYPE
+    public enum STORAGE_ASSOCIATION_TYPE : int
     {
         /// <summary>
         /// Indicates that the descriptor identifies a device.

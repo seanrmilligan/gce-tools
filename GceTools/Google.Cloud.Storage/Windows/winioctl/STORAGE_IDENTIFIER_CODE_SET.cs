@@ -3,7 +3,7 @@
 // Adapted from winioctl.h
 namespace Google.Cloud.Storage.Windows.winioctl
 {
-    public enum STORAGE_IDENTIFIER_CODE_SET
+    public enum STORAGE_IDENTIFIER_CODE_SET : int
     {
         StorageIdCodeSetReserved = 0,
         StorageIdCodeSetBinary = 1,

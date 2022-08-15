@@ -73,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\ArrayExtensions.cs" />
+    <Compile Include="Extensions\StructExtensions.cs" />
     <Compile Include="Extensions\IEnumerableExtensions.cs" />
     <Compile Include="GetGcePdNameCommand.cs" />
     <Compile Include="Program.cs" />

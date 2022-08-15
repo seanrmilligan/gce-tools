@@ -3,7 +3,7 @@
 // Adapted from winioctl.h
 namespace Google.Cloud.Storage.Windows.winioctl
 {
-    public enum STORAGE_IDENTIFIER_TYPE
+    public enum STORAGE_IDENTIFIER_TYPE : int
     {
         StorageIdTypeVendorSpecific = 0,
         StorageIdTypeVendorId = 1,

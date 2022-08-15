@@ -47,5 +47,10 @@ namespace Google.Cloud.Storage.Tests
             STORAGE_DEVICE_ID_DESCRIPTOR example = default(STORAGE_DEVICE_ID_DESCRIPTOR);
             Assert.AreEqual(524, Marshal.SizeOf(example));
         }
+
+        public void OfStoragePropertyQueryIs_Bytes()
+        {
+            
+        }
     }
 }

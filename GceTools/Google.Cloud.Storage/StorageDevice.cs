@@ -14,6 +14,7 @@ using System.Linq;
 // for System.Management and check the box.
 // https://stackoverflow.com/a/11660206/1230197
 using System.Management;
+using Google.Cloud.Storage.Extensions;
 using Newtonsoft.Json; // for WqlObjectQuery
 
 using LPSECURITY_ATTRIBUTES = System.IntPtr;
@@ -137,10 +138,37 @@ namespace Google.Cloud.Storage
         lpBytesReturned: ref written,
         lpOverlapped: IntPtr.Zero);
       ThrowOnFailure(ok);
+
+      Console.WriteLine(result.ToHexString());
       
       return result;
     }
-    
+
+    public STORAGE_DEVICE_ID_DESCRIPTOR GetDeviceIdDescriptor()
+    {
+      // https://stackoverflow.com/a/17354960/1230197
+      var query = new STORAGE_PROPERTY_QUERY
+      {
+        PropertyId = STORAGE_PROPERTY_ID.StorageDeviceIdProperty,  // page 83
+        QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
+      };
+      // https://stackoverflow.com/a/2069456/1230197
+      var result = default(STORAGE_DEVICE_ID_DESCRIPTOR);
+      uint written = 0;
+      
+      bool ok = DeviceIoControl(
+        hDevice: _hDevice,
+        dwIoControlCode: IOCTL_STORAGE_QUERY_PROPERTY,
+        lpInBuffer: ref query,
+        nInBufferSize: (uint)Marshal.SizeOf(query),
+        lpOutBuffer: out result,
+        nOutBufferSize: Marshal.SizeOf(result),
+        lpBytesReturned: ref written,
+        lpOverlapped: IntPtr.Zero);
+      ThrowOnFailure(ok);
+
+      return result;
+    }
     
     public string GetBusType()
     {
@@ -155,23 +183,9 @@ namespace Google.Cloud.Storage
     //   System.ComponentModel.Win32Exception: if we could not open a handle for
     //     the device (probably because deviceId is invalid)
     //   InvalidOperationException: if the device is not a GCE PD.
-    public string Get_GcePdName(string deviceId)
+    public string Get_GcePdName()
     {
-      // https://stackoverflow.com/a/17354960/1230197
-      var query = new STORAGE_PROPERTY_QUERY
-      {
-        PropertyId = STORAGE_PROPERTY_ID.StorageDeviceIdProperty,  // page 83
-        QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
-      };
-      var qsize = (uint)Marshal.SizeOf(query);
-      // https://stackoverflow.com/a/2069456/1230197
-      var result = default(STORAGE_DEVICE_ID_DESCRIPTOR);
-      var rsize = Marshal.SizeOf(result);
-      uint written = 0;
-      bool ok = DeviceIoControl(_hDevice, IOCTL_STORAGE_QUERY_PROPERTY,
-                   ref query, qsize, out result, rsize, ref written,
-                   IntPtr.Zero);
-      ThrowOnFailure(ok);
+      STORAGE_DEVICE_ID_DESCRIPTOR result = GetDeviceIdDescriptor();
 
       uint numIdentifiers = result.NumberOfIdentifiers;
       WriteDebugLine($"numIdentifiers: {numIdentifiers}");
@@ -226,7 +240,7 @@ namespace Google.Cloud.Storage
           if (!fullName.StartsWith(GoogleScsiPrefix))
           {
             var e = new InvalidOperationException(
-              $"deviceId {deviceId} maps to {fullName} which is not a GCE PD");
+              $"deviceId {Id} maps to {fullName} which is not a GCE PD");
             WriteDebugLine($"{e}");
             throw e;
           }
@@ -277,21 +291,23 @@ namespace Google.Cloud.Storage
       {
         PropertyId = STORAGE_PROPERTY_ID.StorageAdapterProtocolSpecificProperty,
         QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery,
-        AdditionalParameters = ToBytes(protocolSpecificData)
+        AdditionalParameters = protocolSpecificData.ToBytes()
       };
-      var qsize = (uint)Marshal.SizeOf(query);
       // https://stackoverflow.com/a/2069456/1230197
       var result = default(STORAGE_PROTOCOL_DATA_DESCRIPTOR);
-      var rsize = Marshal.SizeOf(result);
       uint written = 0;
-      bool ok = DeviceIoControl(_hDevice, IOCTL_STORAGE_QUERY_PROPERTY,
-        ref query, qsize, out result, rsize, ref written,
-        IntPtr.Zero);
-
+      bool ok = DeviceIoControl(
+        hDevice: _hDevice,
+        dwIoControlCode: IOCTL_STORAGE_QUERY_PROPERTY,
+        lpInBuffer: ref query,
+        nInBufferSize: (uint)Marshal.SizeOf(query),
+        lpOutBuffer: out result,
+        nOutBufferSize: Marshal.SizeOf(result),
+        lpBytesReturned: ref written,
+        lpOverlapped: IntPtr.Zero);
+      
       ThrowOnFailure(ok);
       
-      Console.WriteLine(JsonConvert.SerializeObject(result));
-
       return string.Empty;
     }
 
@@ -314,30 +330,6 @@ namespace Google.Cloud.Storage
       }
 
       return hDevice;
-    }
-    
-    /// <summary>
-    /// Taken from https://stackoverflow.com/questions/3278827/how-to-convert-a-structure-to-a-byte-array-in-c
-    /// </summary>
-    /// <param name="protocolSpecificData"></param>
-    /// <returns></returns>
-    private static byte[] ToBytes(STORAGE_PROTOCOL_SPECIFIC_DATA protocolSpecificData)
-    {
-      int size = Marshal.SizeOf(protocolSpecificData);
-      byte[] arr = new byte[1024];
-
-      // We have to know ahead of time the size of the array we marshal/unmarshal so this is made to match
-      // the SizeConst in STORAGE_PROPERTY_QUERY.
-      if (size > 1024)
-      {
-        Console.WriteLine("struct size larger than expected");
-      }
-      
-      IntPtr ptr = Marshal.AllocHGlobal(size);
-      Marshal.StructureToPtr(protocolSpecificData, ptr, true);
-      Marshal.Copy(ptr, arr, 0, size);
-      Marshal.FreeHGlobal(ptr);
-      return arr;
     }
 
     /// <summary>

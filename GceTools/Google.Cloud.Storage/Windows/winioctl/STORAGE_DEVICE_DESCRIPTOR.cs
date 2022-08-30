@@ -153,7 +153,8 @@ namespace Google.Cloud.Storage.Windows.winioctl
 
         public override string ToString()
         {
-            return string.Join("\n", new[] {
+            return string.Join("\n", new[]
+            {
                 $"Version:               {Version}",
                 $"Size:                  {Size}",
                 $"DeviceType:            {DeviceType}",

@@ -56,9 +56,9 @@ namespace Google.Cloud.Storage.Windows.kernel32
         public static extern bool DeviceIoControl(
             SafeFileHandle hDevice,
             DWORD dwIoControlCode,
-            ref STORAGE_PROPERTY_QUERY lpInBuffer,
+            System.IntPtr lpInBuffer,
             DWORD nInBufferSize,
-            out STORAGE_PROTOCOL_DATA_DESCRIPTOR  lpOutBuffer,
+            System.IntPtr  lpOutBuffer,
             int nOutBufferSize,
             ref DWORD lpBytesReturned,
             LPOVERLAPPED lpOverlapped

@@ -75,6 +75,7 @@
     <Compile Include="Extensions\ArrayExtensions.cs" />
     <Compile Include="Extensions\StructExtensions.cs" />
     <Compile Include="Extensions\IEnumerableExtensions.cs" />
+    <Compile Include="Page.cs" />
     <Compile Include="GetGcePdNameCommand.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="StorageDevice.cs" />

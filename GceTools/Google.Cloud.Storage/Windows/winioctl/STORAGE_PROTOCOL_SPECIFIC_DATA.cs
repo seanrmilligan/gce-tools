@@ -68,5 +68,22 @@ namespace Google.Cloud.Storage.Windows.winioctl
         /// 
         /// </summary>
         public DWORD ProtocolDataRequestSubValue4;
+
+        public override string ToString()
+        {
+            return string.Join(System.Environment.NewLine, new[]
+            {
+               $"ProtocolType:                 {ProtocolType}",
+               $"DataType:                     {(STORAGE_PROTOCOL_NVME_DATA_TYPE) DataType}",
+               $"ProtocolDataRequestValue:     {ProtocolDataRequestValue}",
+               $"ProtocolDataRequestSubValue:  {ProtocolDataRequestSubValue}",
+               $"ProtocolDataOffset:           {ProtocolDataOffset}",
+               $"ProtocolDataLength:           {ProtocolDataLength}",
+               $"FixedProtocolReturnData:      {FixedProtocolReturnData}",
+               $"ProtocolDataRequestSubValue2: {ProtocolDataRequestSubValue2}",
+               $"ProtocolDataRequestSubValue3: {ProtocolDataRequestSubValue3}",
+               $"ProtocolDataRequestSubValue4: {ProtocolDataRequestSubValue4}"
+            });
+        }
     }
 }

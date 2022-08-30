@@ -25,5 +25,17 @@ namespace Google.Cloud.Storage.Windows.winioctl
         /// <see cref="STORAGE_PROTOCOL_SPECIFIC_DATA"/>.
         /// </summary>
         public readonly STORAGE_PROTOCOL_SPECIFIC_DATA ProtocolSpecificData;
+
+        public override string ToString()
+        {
+            string indent = System.Environment.NewLine + "  ";
+            return string.Join(System.Environment.NewLine, new[]
+            {
+                $"Version:               {Version}",
+                $"Size:                  {Size}",
+                $"ProtocolSpecificData:",
+                $"  {ProtocolSpecificData.ToString().Replace(System.Environment.NewLine, indent)}"
+            });
+        }
     } 
 }

@@ -21,7 +21,7 @@ namespace Google.Cloud.Storage.Extensions
         /// <exception cref="InternalBufferOverflowException"></exception>
         public static byte[] ToBytes<T>(this T strct) where T : struct
         {
-            const int bufferSize = 2048;
+            const int bufferSize = 4096*2;
             int size = Marshal.SizeOf(strct);
             byte[] arr = new byte[bufferSize];
             

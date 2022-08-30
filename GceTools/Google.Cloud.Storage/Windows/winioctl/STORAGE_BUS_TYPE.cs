@@ -62,43 +62,43 @@ namespace Google.Cloud.Storage.Windows.winioctl
         /// Serial Attached SCSI (SAS) bus.
         /// Windows Server 2003:  This is not supported before Windows Server 2003 with SP1.
         /// </summary>
-        BusTypeSas,
+        BusTypeSas = 10,
         
         /// <summary>
         /// SATA bus.
         /// Windows Server 2003:  This is not supported before Windows Server 2003 with SP1.
         /// </summary>
-        BusTypeSata,
+        BusTypeSata = 11,
         
         /// <summary>
         /// 
         /// </summary>
-        BusTypeSd,
+        BusTypeSd = 12,
         
         /// <summary>
         /// 
         /// </summary>
-        BusTypeMmc,
+        BusTypeMmc = 13,
         
         /// <summary>
         /// 
         /// </summary>
-        BusTypeVirtual,
+        BusTypeVirtual = 14,
         
         /// <summary>
         /// 
         /// </summary>
-        BusTypeFileBackedVirtual,
+        BusTypeFileBackedVirtual = 15,
         
         /// <summary>
         /// 
         /// </summary>
-        BusTypeSpaces,
+        BusTypeSpaces = 16,
         
         /// <summary>
         /// 
         /// </summary>
-        BusTypeNvme,
+        BusTypeNvme = 17,
         
         /// <summary>
         /// 

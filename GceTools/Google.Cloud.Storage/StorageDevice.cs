@@ -14,7 +14,9 @@ using System.Linq;
 // for System.Management and check the box.
 // https://stackoverflow.com/a/11660206/1230197
 using System.Management;
+using System.Threading;
 using Google.Cloud.Storage.Extensions;
+using Google.Cloud.Storage.Windows;
 using Newtonsoft.Json; // for WqlObjectQuery
 
 using LPSECURITY_ATTRIBUTES = System.IntPtr;
@@ -273,38 +275,51 @@ namespace Google.Cloud.Storage
       return null;
     }
 
-    public string Get_GcePdName_Nvme()
+    public string NvmeIdentify(NVME_IDENTIFY_CNS_CODES identifyCode)
     {
       var protocolSpecificData = default(STORAGE_PROTOCOL_SPECIFIC_DATA);
       protocolSpecificData = new STORAGE_PROTOCOL_SPECIFIC_DATA
       {
         ProtocolType = STORAGE_PROTOCOL_TYPE.ProtocolTypeNvme,
         DataType = (uint)STORAGE_PROTOCOL_NVME_DATA_TYPE.NVMeDataTypeIdentify,
-        ProtocolDataRequestValue = (uint)NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_CONTROLLER,
+        ProtocolDataRequestValue = (uint)identifyCode,
         ProtocolDataRequestSubValue = 0,
         ProtocolDataOffset = (uint)Marshal.SizeOf(protocolSpecificData),
         ProtocolDataLength = NvmeMaxLogSize
       };
       
-      // https://stackoverflow.com/a/17354960/1230197
       var query = new STORAGE_PROPERTY_QUERY
       {
         PropertyId = STORAGE_PROPERTY_ID.StorageAdapterProtocolSpecificProperty,
-        QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery,
+        QueryType = STORAGE_QUERY_TYPE.PropertyExistsQuery,
         AdditionalParameters = protocolSpecificData.ToBytes()
       };
-      // https://stackoverflow.com/a/2069456/1230197
+
+      IntPtr ptr = Marshal.AllocHGlobal(4096 * 2);
+      
+      // write our query to the allocated memory
+      Marshal.StructureToPtr(query, ptr, true);
+      
       var result = default(STORAGE_PROTOCOL_DATA_DESCRIPTOR);
       uint written = 0;
       bool ok = DeviceIoControl(
         hDevice: _hDevice,
         dwIoControlCode: IOCTL_STORAGE_QUERY_PROPERTY,
-        lpInBuffer: ref query,
+        lpInBuffer: ptr,
         nInBufferSize: (uint)Marshal.SizeOf(query),
-        lpOutBuffer: out result,
+        lpOutBuffer: ptr,
         nOutBufferSize: Marshal.SizeOf(result),
         lpBytesReturned: ref written,
         lpOverlapped: IntPtr.Zero);
+      
+      // read the response back from the same memory (the query was overwritten)
+      result = Marshal.PtrToStructure<STORAGE_PROTOCOL_DATA_DESCRIPTOR>(ptr);
+      Page buffer = Marshal.PtrToStructure<Page>(ptr + 40);
+      Console.WriteLine(result.ToString());
+      Console.WriteLine(result.ToHexString());
+      Console.WriteLine(buffer.ToHexString());
+      
+      Marshal.FreeHGlobal(ptr);
       
       ThrowOnFailure(ok);
       

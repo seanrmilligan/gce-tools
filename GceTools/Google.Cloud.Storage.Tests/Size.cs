@@ -31,7 +31,31 @@ namespace Google.Cloud.Storage.Tests
             //
             // Therefore, the expected size is 40 bytes + 1023 bytes = 1063 bytes
             STORAGE_DEVICE_DESCRIPTOR example = default(STORAGE_DEVICE_DESCRIPTOR);
-            Assert.AreEqual(1063, Marshal.SizeOf(example));
+            Assert.AreEqual(0, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.Version)));
+            Assert.AreEqual(4, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.Size)));
+            Assert.AreEqual(8, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.DeviceType)));
+            Assert.AreEqual(9, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.DeviceTypeModifier)));
+            Assert.AreEqual(10, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.RemovableMedia)));
+            Assert.AreEqual(11, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.CommandQueueing)));
+            Assert.AreEqual(12, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.VendorIdOffset)));
+            Assert.AreEqual(16, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.ProductIdOffset)));
+            Assert.AreEqual(20, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.ProductRevisionOffset)));
+            Assert.AreEqual(24, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.SerialNumberOffset)));
+            Assert.AreEqual(28, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.BusType)));
+            Assert.AreEqual(29, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.RawPropertiesLength)));
+            Assert.AreEqual(1064, Marshal.SizeOf(example));
         }
 
         [Test]
@@ -51,6 +75,26 @@ namespace Google.Cloud.Storage.Tests
         public void OfStoragePropertyQueryIs_Bytes()
         {
             
+        }
+
+        [Test]
+        public void OfStorageProtocolSpecificDataIsFortyBytes()
+        {
+            // TODO: Confirm
+            STORAGE_PROTOCOL_SPECIFIC_DATA example = default(STORAGE_PROTOCOL_SPECIFIC_DATA);
+            Assert.AreEqual(40, Marshal.SizeOf(example));
+        }
+
+        [Test]
+        public void OfStorageProtocolTypeIsFourBytes()
+        {
+            // TODO: Confirm
+            Assert.AreEqual(4, sizeof(STORAGE_PROTOCOL_TYPE));
+        }
+
+        private int OffsetOf<T>(string fieldName)
+        {
+            return Marshal.OffsetOf(typeof(T), fieldName).ToInt32();
         }
     }
 }

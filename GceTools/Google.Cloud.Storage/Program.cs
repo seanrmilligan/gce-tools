@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Linq;
 using CommandLine;
 using Google.Cloud.Storage.Extensions;
+using Google.Cloud.Storage.Windows.nvme;
 
 namespace Google.Cloud.Storage
 {
@@ -118,7 +119,7 @@ namespace Google.Cloud.Storage
     {
       foreach (StorageDevice device in devices)
       {
-        Console.WriteLine(device.Get_GcePdName_Nvme());
+        Console.WriteLine(device.NvmeIdentify(NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_SPECIFIC_NAMESPACE));
       }
     }
     private static void WriteDebugLine(string line)

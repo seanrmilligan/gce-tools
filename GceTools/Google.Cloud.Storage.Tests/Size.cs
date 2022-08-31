@@ -10,14 +10,14 @@ namespace Google.Cloud.Storage.Tests
         [Test]
         public void OfBusTypeIsOneByte()
         {
-            Assert.AreEqual(1, sizeof(STORAGE_BUS_TYPE));
+            Assert.That(sizeof(STORAGE_BUS_TYPE), Is.EqualTo(1));
         }
 
         [Test]
         public void OfStorageAdapterDescriptorIsThirtyTwoBytes()
         {
             STORAGE_ADAPTER_DESCRIPTOR example = default(STORAGE_ADAPTER_DESCRIPTOR);
-            Assert.AreEqual(32, Marshal.SizeOf(example));
+            Assert.That(Marshal.SizeOf(example), Is.EqualTo(32));
         }
 
         [Test]
@@ -31,31 +31,31 @@ namespace Google.Cloud.Storage.Tests
             //
             // Therefore, the expected size is 40 bytes + 1023 bytes = 1063 bytes
             STORAGE_DEVICE_DESCRIPTOR example = default(STORAGE_DEVICE_DESCRIPTOR);
-            Assert.AreEqual(0, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
-                nameof(STORAGE_DEVICE_DESCRIPTOR.Version)));
-            Assert.AreEqual(4, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
-                nameof(STORAGE_DEVICE_DESCRIPTOR.Size)));
-            Assert.AreEqual(8, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
-                nameof(STORAGE_DEVICE_DESCRIPTOR.DeviceType)));
-            Assert.AreEqual(9, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
-                nameof(STORAGE_DEVICE_DESCRIPTOR.DeviceTypeModifier)));
-            Assert.AreEqual(10, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
-                nameof(STORAGE_DEVICE_DESCRIPTOR.RemovableMedia)));
-            Assert.AreEqual(11, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
-                nameof(STORAGE_DEVICE_DESCRIPTOR.CommandQueueing)));
-            Assert.AreEqual(12, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
-                nameof(STORAGE_DEVICE_DESCRIPTOR.VendorIdOffset)));
-            Assert.AreEqual(16, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
-                nameof(STORAGE_DEVICE_DESCRIPTOR.ProductIdOffset)));
-            Assert.AreEqual(20, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
-                nameof(STORAGE_DEVICE_DESCRIPTOR.ProductRevisionOffset)));
-            Assert.AreEqual(24, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
-                nameof(STORAGE_DEVICE_DESCRIPTOR.SerialNumberOffset)));
-            Assert.AreEqual(28, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
-                nameof(STORAGE_DEVICE_DESCRIPTOR.BusType)));
-            Assert.AreEqual(29, OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
-                nameof(STORAGE_DEVICE_DESCRIPTOR.RawPropertiesLength)));
-            Assert.AreEqual(1064, Marshal.SizeOf(example));
+            Assert.That(OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.Version)), Is.EqualTo(0));
+            Assert.That(OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.Size)), Is.EqualTo(4));
+            Assert.That(OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.DeviceType)), Is.EqualTo(8));
+            Assert.That(OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.DeviceTypeModifier)), Is.EqualTo(9));
+            Assert.That(OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.RemovableMedia)), Is.EqualTo(10));
+            Assert.That(OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.CommandQueueing)), Is.EqualTo(11));
+            Assert.That(OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.VendorIdOffset)), Is.EqualTo(12));
+            Assert.That(OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.ProductIdOffset)), Is.EqualTo(16));
+            Assert.That(OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.ProductRevisionOffset)), Is.EqualTo(20));
+            Assert.That(OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.SerialNumberOffset)), Is.EqualTo(24));
+            Assert.That(OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.BusType)), Is.EqualTo(28));
+            Assert.That(OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
+                nameof(STORAGE_DEVICE_DESCRIPTOR.RawPropertiesLength)), Is.EqualTo(29));
+            Assert.That(Marshal.SizeOf(example), Is.EqualTo(1064));
         }
 
         [Test]
@@ -69,7 +69,7 @@ namespace Google.Cloud.Storage.Tests
             //
             // Therefore, the expected size is 13 bytes + 511 bytes = 524 bytes
             STORAGE_DEVICE_ID_DESCRIPTOR example = default(STORAGE_DEVICE_ID_DESCRIPTOR);
-            Assert.AreEqual(524, Marshal.SizeOf(example));
+            Assert.That(Marshal.SizeOf(example), Is.EqualTo(524));
         }
 
         public void OfStoragePropertyQueryIs_Bytes()
@@ -82,14 +82,14 @@ namespace Google.Cloud.Storage.Tests
         {
             // TODO: Confirm
             STORAGE_PROTOCOL_SPECIFIC_DATA example = default(STORAGE_PROTOCOL_SPECIFIC_DATA);
-            Assert.AreEqual(40, Marshal.SizeOf(example));
+            Assert.That(Marshal.SizeOf(example), Is.EqualTo(40));
         }
 
         [Test]
         public void OfStorageProtocolTypeIsFourBytes()
         {
             // TODO: Confirm
-            Assert.AreEqual(4, sizeof(STORAGE_PROTOCOL_TYPE));
+            Assert.That(sizeof(STORAGE_PROTOCOL_TYPE), Is.EqualTo(4));
         }
 
         private int OffsetOf<T>(string fieldName)

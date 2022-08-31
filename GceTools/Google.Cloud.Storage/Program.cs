@@ -1,10 +1,4 @@
-﻿// Code for .exe version of Get-GcePdName. This code may be or become broken now
-// that the Powershell module version (GetGcePdNameCommand.cs) is working.
-
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.ComponentModel;
 using CommandLine;
 using Google.Cloud.Storage.Extensions;
 using Google.Cloud.Storage.Windows.nvme;
@@ -68,11 +62,18 @@ namespace Google.Cloud.Storage
             .Select(deviceId => new StorageDevice(deviceId, Verbose))
             .ToList();
 
-          if (options.BusType) ListBusTypes(devices);
-          if (options.NvmeIdentify) NvmeIdentify(devices);
-          if (options.StorageAdapterDescriptor) ListAdapterDescriptors(devices);
-          if (options.StorageDeviceDescriptor) ListDeviceDescriptors(devices);
-          
+          foreach (StorageDevice device in devices)
+          {
+            Console.WriteLine($"Physical Drive: {device.PhysicalDrive}");
+            if (options.BusType)
+              Console.WriteLine(device.GetBusType());
+            if (options.NvmeIdentify)
+              Console.WriteLine(device.NvmeIdentify(NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_CONTROLLER));
+            if (options.StorageAdapterDescriptor)
+              Console.WriteLine(device.GetAdapterDescriptor());
+            if (options.StorageDeviceDescriptor)
+              Console.WriteLine(device.GetDeviceDescriptor());
+          }
         }
         catch (Win32Exception ex)
         {
@@ -86,42 +87,7 @@ namespace Google.Cloud.Storage
         }
       });
     }
-
-    private static void ListAdapterDescriptors(List<StorageDevice> devices)
-    {
-      foreach (StorageDevice device in devices)
-      {
-        Console.WriteLine(device.GetAdapterDescriptor());
-      }
-    }
     
-    private static void ListBusTypes(IEnumerable<StorageDevice> devices)
-    {
-      IEnumerable<Tuple<string, string>> deviceBusType = devices
-        .Select(device => 
-          new Tuple<string, string>(device.Id, device.GetBusType()));
-
-      foreach (Tuple<string, string> tuple in deviceBusType)
-      {
-        Console.WriteLine($"{tuple.Item1}: {tuple.Item2}");
-      }
-    }
-
-    private static void ListDeviceDescriptors(List<StorageDevice> devices)
-    {
-      foreach (StorageDevice device in devices)
-      {
-        Console.WriteLine(device.GetDeviceDescriptor());
-      }
-    }
-
-    private static void NvmeIdentify(List<StorageDevice> devices)
-    {
-      foreach (StorageDevice device in devices)
-      {
-        Console.WriteLine(device.NvmeIdentify(NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_SPECIFIC_NAMESPACE));
-      }
-    }
     private static void WriteDebugLine(string line)
     {
       if (Verbose)

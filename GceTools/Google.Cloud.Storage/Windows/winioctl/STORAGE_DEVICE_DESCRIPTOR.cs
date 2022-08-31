@@ -131,13 +131,25 @@ namespace Google.Cloud.Storage.Windows.winioctl
         [FieldOffset(35)]
         private readonly BYTE RawDeviceProperties2;
         
+        [FieldOffset(36)]
+        private readonly BYTE RawDeviceProperties3;
+        
+        [FieldOffset(37)]
+        private readonly BYTE RawDeviceProperties4;
+        
+        [FieldOffset(38)]
+        private readonly BYTE RawDeviceProperties5;
+        
+        [FieldOffset(39)]
+        private readonly BYTE RawDeviceProperties6;
+        
         /// <summary>
         /// Contains an array of length one that serves as a place holder for
         /// the first byte of the bus specific property data.
         /// </summary>
-        [FieldOffset(36)]
+        [FieldOffset(40)]
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1024)]
-        private readonly BYTE[] RawDeviceProperties3;
+        private readonly BYTE[] RawDeviceProperties7;
         
         public BYTE[] RawDeviceProperties()
         {
@@ -146,8 +158,12 @@ namespace Google.Cloud.Storage.Windows.winioctl
                 {
                     RawDeviceProperties0,
                     RawDeviceProperties1,
-                    RawDeviceProperties2
-                }.Concat(RawDeviceProperties3)
+                    RawDeviceProperties2,
+                    RawDeviceProperties3,
+                    RawDeviceProperties4,
+                    RawDeviceProperties5,
+                    RawDeviceProperties6
+                }.Concat(RawDeviceProperties7)
                 .ToArray();
         }
 

@@ -1,8 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
-using Google.Cloud.Storage.Windows.winioctl;
 
 namespace Google.Cloud.Storage.Extensions
 {

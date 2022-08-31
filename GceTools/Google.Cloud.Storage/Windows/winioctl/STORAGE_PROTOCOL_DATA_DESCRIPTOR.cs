@@ -28,13 +28,13 @@ namespace Google.Cloud.Storage.Windows.winioctl
 
         public override string ToString()
         {
-            string indent = System.Environment.NewLine + "  ";
-            return string.Join(System.Environment.NewLine, new[]
+            string indent = Environment.NewLine + "  ";
+            return string.Join(Environment.NewLine, new[]
             {
                 $"Version:               {Version}",
                 $"Size:                  {Size}",
                 $"ProtocolSpecificData:",
-                $"  {ProtocolSpecificData.ToString().Replace(System.Environment.NewLine, indent)}"
+                $"  {ProtocolSpecificData.ToString().Replace(Environment.NewLine, indent)}"
             });
         }
     } 

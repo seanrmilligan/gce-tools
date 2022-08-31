@@ -108,7 +108,7 @@ namespace Google.Cloud.Storage
         {
           PdName pd = new PdName
           {
-            Name = new StorageDevice(deviceId).NvmeIdentify(NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_SPECIFIC_NAMESPACE),
+            Name = string.Empty, //new StorageDevice(deviceId).NvmeIdentify(NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_SPECIFIC_NAMESPACE),
             DeviceId = deviceId
           };
           WriteObject(pd);

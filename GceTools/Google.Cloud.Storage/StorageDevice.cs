@@ -1,24 +1,12 @@
-﻿using System;
-using System.Runtime.InteropServices;  // for DllImport, Marshal
-using System.ComponentModel;  // for Win32Exception
-
-// https://github.com/DKorablin/DeviceIoControl
+﻿using System.ComponentModel;
+using System.Management;
+using System.Runtime.InteropServices;
+using System.Text;
 using AlphaOmega.Debug;
+using Google.Cloud.Storage.Extensions;
 using Google.Cloud.Storage.Windows.nvme;
 using Google.Cloud.Storage.Windows.winioctl;
 using Microsoft.Win32.SafeHandles;
-using System.Collections.Generic;
-using System.Linq;
-// Make sure that the Visual Studio project "references" System.Management:
-// right-click on References in the Solution Explorer, Add Reference, search
-// for System.Management and check the box.
-// https://stackoverflow.com/a/11660206/1230197
-using System.Management;
-using System.Threading;
-using Google.Cloud.Storage.Extensions;
-using Google.Cloud.Storage.Windows;
-using Newtonsoft.Json; // for WqlObjectQuery
-
 using LPSECURITY_ATTRIBUTES = System.IntPtr;
 using LPOVERLAPPED = System.IntPtr;
 using HANDLE = System.IntPtr;
@@ -48,7 +36,7 @@ namespace Google.Cloud.Storage
     private readonly SafeFileHandle _hDevice;
     private readonly bool _verbose;
     
-    private string PhysicalDrive => PhysicalDrivePrefix + Id;
+    public string PhysicalDrive => PhysicalDrivePrefix + Id;
 
     public StorageDevice(string id, bool verbose = false)
     {
@@ -140,21 +128,18 @@ namespace Google.Cloud.Storage
         lpBytesReturned: ref written,
         lpOverlapped: IntPtr.Zero);
       ThrowOnFailure(ok);
-
-      Console.WriteLine(result.ToHexString());
       
       return result;
     }
 
     public STORAGE_DEVICE_ID_DESCRIPTOR GetDeviceIdDescriptor()
     {
-      // https://stackoverflow.com/a/17354960/1230197
       var query = new STORAGE_PROPERTY_QUERY
       {
-        PropertyId = STORAGE_PROPERTY_ID.StorageDeviceIdProperty,  // page 83
+        PropertyId = STORAGE_PROPERTY_ID.StorageDeviceIdProperty,
         QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
       };
-      // https://stackoverflow.com/a/2069456/1230197
+      
       var result = default(STORAGE_DEVICE_ID_DESCRIPTOR);
       uint written = 0;
       
@@ -237,7 +222,7 @@ namespace Google.Cloud.Storage
           //
           // TODO(pjh): make this more robust? Not sure if the Google prefix is
           // guaranteed or subject to change in the future.
-          string fullName = System.Text.Encoding.ASCII.GetString(
+          string fullName = Encoding.ASCII.GetString(
             storageIdentifier.Identifier, 0, storageIdentifier.IdentifierSize);
           if (!fullName.StartsWith(GoogleScsiPrefix))
           {
@@ -277,7 +262,7 @@ namespace Google.Cloud.Storage
 
     public string NvmeIdentify(NVME_IDENTIFY_CNS_CODES identifyCode)
     {
-      var protocolSpecificData = default(STORAGE_PROTOCOL_SPECIFIC_DATA);
+      STORAGE_PROTOCOL_SPECIFIC_DATA protocolSpecificData = default;
       protocolSpecificData = new STORAGE_PROTOCOL_SPECIFIC_DATA
       {
         ProtocolType = STORAGE_PROTOCOL_TYPE.ProtocolTypeNvme,
@@ -285,17 +270,19 @@ namespace Google.Cloud.Storage
         ProtocolDataRequestValue = (uint)identifyCode,
         ProtocolDataRequestSubValue = 0,
         ProtocolDataOffset = (uint)Marshal.SizeOf(protocolSpecificData),
-        ProtocolDataLength = NvmeMaxLogSize
+        ProtocolDataLength = 0
       };
       
       var query = new STORAGE_PROPERTY_QUERY
       {
         PropertyId = STORAGE_PROPERTY_ID.StorageAdapterProtocolSpecificProperty,
-        QueryType = STORAGE_QUERY_TYPE.PropertyExistsQuery,
+        QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery,
         AdditionalParameters = protocolSpecificData.ToBytes()
       };
 
-      IntPtr ptr = Marshal.AllocHGlobal(4096 * 2);
+      int bufferSize = 4096 * 2;
+      IntPtr ptr = Marshal.AllocHGlobal(bufferSize);
+      Marshal.Copy(new byte[bufferSize], 0, ptr, bufferSize);
       
       // write our query to the allocated memory
       Marshal.StructureToPtr(query, ptr, true);
@@ -314,10 +301,14 @@ namespace Google.Cloud.Storage
       
       // read the response back from the same memory (the query was overwritten)
       result = Marshal.PtrToStructure<STORAGE_PROTOCOL_DATA_DESCRIPTOR>(ptr);
-      Page buffer = Marshal.PtrToStructure<Page>(ptr + 40);
+      Page buffer = Marshal.PtrToStructure<Page>(ptr);
+      Page buffer2 = Marshal.PtrToStructure<Page>(ptr + 4096);
       Console.WriteLine(result.ToString());
-      Console.WriteLine(result.ToHexString());
-      Console.WriteLine(buffer.ToHexString());
+      if (written > 0)
+      {
+        Console.WriteLine(buffer.ToHexString());
+        Console.WriteLine(buffer2.ToHexString());
+      }
       
       Marshal.FreeHGlobal(ptr);
       
@@ -347,26 +338,6 @@ namespace Google.Cloud.Storage
       return hDevice;
     }
 
-    /// <summary>
-    /// Taken from https://stackoverflow.com/questions/3278827/how-to-convert-a-structure-to-a-byte-array-in-c
-    /// </summary>
-    /// <param name="descriptor"></param>
-    /// <returns></returns>
-    private static STORAGE_PROTOCOL_DATA_DESCRIPTOR FromBytes(byte[] arr)
-    {
-      STORAGE_PROTOCOL_DATA_DESCRIPTOR str = default(STORAGE_PROTOCOL_DATA_DESCRIPTOR);
-
-      int size = Marshal.SizeOf(str);
-      IntPtr ptr = Marshal.AllocHGlobal(size);
-
-      Marshal.Copy(arr, 0, ptr, size);
-
-      str = (STORAGE_PROTOCOL_DATA_DESCRIPTOR)Marshal.PtrToStructure(ptr, str.GetType());
-      Marshal.FreeHGlobal(ptr);
-
-      return str;
-    }
-    
     // Returns a list of the deviceIds of all of the physical disks attached
     // to the system. This is equivalent to running
     // `(Get-PhysicalDisk).deviceId` in PowerShell.

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // https://docs.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-storage_device_id_descriptor
 using System.Runtime.InteropServices;
+using Google.Cloud.Storage.Extensions;
 using DWORD = System.UInt32;
 using BYTE = System.Byte;
 
@@ -45,5 +46,16 @@ namespace Google.Cloud.Storage.Windows.winioctl
         // pjh: BUFFER_SIZE (512 bytes) is assumed to be sufficient here.
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 512)]
         public BYTE[] Identifiers;
+        
+        public override string ToString()
+        {
+            return string.Join("\n", new[]
+            {
+                $"Version:               {Version}",
+                $"Size:                  {Size}",
+                $"NumberOfIdentifiers:   {NumberOfIdentifiers}",
+                $"Identifiers:           {System.Text.Encoding.ASCII.GetString(Identifiers)}"
+            });
+        }
     }
 }

@@ -2,6 +2,7 @@
 using CommandLine;
 using Google.Cloud.Storage.Extensions;
 using Google.Cloud.Storage.Windows.nvme;
+using Google.Cloud.Storage.Windows.winioctl;
 
 namespace Google.Cloud.Storage
 {
@@ -27,6 +28,9 @@ namespace Google.Cloud.Storage
     
     [Option(longName: "storage-device-descriptor")]
     public bool StorageDeviceDescriptor { get; set; }
+    
+    [Option(longName: "storage-device-id-descriptor")]
+    public bool StorageDeviceIdDescriptor { get; set; }
   }
 
   public class Program
@@ -65,14 +69,36 @@ namespace Google.Cloud.Storage
           foreach (StorageDevice device in devices)
           {
             Console.WriteLine($"Physical Drive: {device.PhysicalDrive}");
+            
             if (options.BusType)
-              Console.WriteLine(device.GetBusType());
+            {
+              Console.WriteLine($"BusType: {device.GetBusType()}");
+              Console.WriteLine();
+            }
             if (options.NvmeIdentify)
+            {
+              Console.WriteLine("NVME IDENTIFY:");
               Console.WriteLine(device.NvmeIdentify(NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_CONTROLLER));
+              Console.WriteLine();
+            }
             if (options.StorageAdapterDescriptor)
+            {
+              Console.WriteLine($"{nameof(STORAGE_ADAPTER_DESCRIPTOR)}:");
               Console.WriteLine(device.GetAdapterDescriptor());
+              Console.WriteLine();
+            }
             if (options.StorageDeviceDescriptor)
+            {
+              Console.WriteLine($"{nameof(STORAGE_DEVICE_DESCRIPTOR)}:");
               Console.WriteLine(device.GetDeviceDescriptor());
+              Console.WriteLine();
+            }
+
+            if (options.StorageDeviceIdDescriptor)
+            {
+              Console.WriteLine($"{nameof(STORAGE_DEVICE_ID_DESCRIPTOR)}:");
+              Console.WriteLine(device.GetDeviceIdDescriptor());
+            }
           }
         }
         catch (Win32Exception ex)

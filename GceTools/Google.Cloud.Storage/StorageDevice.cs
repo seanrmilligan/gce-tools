@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -6,7 +7,9 @@ using AlphaOmega.Debug;
 using Google.Cloud.Storage.Extensions;
 using Google.Cloud.Storage.Windows.nvme;
 using Google.Cloud.Storage.Windows.winioctl;
+using Google.Cloud.Storage.Windows.winioctl.h;
 using Microsoft.Win32.SafeHandles;
+using Microsoft.winnt.h;
 using LPSECURITY_ATTRIBUTES = System.IntPtr;
 using LPOVERLAPPED = System.IntPtr;
 using HANDLE = System.IntPtr;
@@ -18,6 +21,7 @@ using static Google.Cloud.Storage.Windows.kernel32.FileApi;
 
 namespace Google.Cloud.Storage
 {
+  [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
   public class StorageDevice
   {
     /// <summary>
@@ -29,8 +33,7 @@ namespace Google.Cloud.Storage
     // Append the drive number to this string for use with the CreateFile API.
     private const string PhysicalDrivePrefix = @"\\.\PHYSICALDRIVE";
     
-    //TODO: substantiate with citation
-    private const uint NvmeMaxLogSize = 4096;
+    private static uint IOCTL_STORAGE_QUERY_PROPERTY = ControlCodes.IOCTL_STORAGE_QUERY_PROPERTY;
 
     public readonly string Id;
     private readonly SafeFileHandle _hDevice;
@@ -57,20 +60,6 @@ namespace Google.Cloud.Storage
         Console.Error.WriteLine(line);
       }
     }
-
-    // Copied from C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\winioctl.h
-    private static uint CTL_CODE(uint deviceType, uint function, uint method, uint access)
-    {
-      return (deviceType << 16) | (access << 14) | (function << 2) | method;
-    }
-    
-    private const uint METHOD_BUFFERED = 0;
-    private const uint FILE_ANY_ACCESS = 0;
-    private const uint FILE_DEVICE_MASS_STORAGE = 0x0000002d;
-    private const uint IOCTL_STORAGE_BASE = FILE_DEVICE_MASS_STORAGE;
-    private static readonly uint IOCTL_STORAGE_QUERY_PROPERTY = CTL_CODE(
-        IOCTL_STORAGE_BASE, 0x0500, METHOD_BUFFERED, FILE_ANY_ACCESS);
-
     private void ThrowOnFailure(bool ok)
     {
       if (!ok)
@@ -82,13 +71,12 @@ namespace Google.Cloud.Storage
 
     public STORAGE_ADAPTER_DESCRIPTOR GetAdapterDescriptor()
     {
-      // https://stackoverflow.com/a/17354960/1230197
       var query = new STORAGE_PROPERTY_QUERY
       {
         PropertyId = STORAGE_PROPERTY_ID.StorageAdapterProperty,
         QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
       };
-      // https://stackoverflow.com/a/2069456/1230197
+      
       var result = default(STORAGE_ADAPTER_DESCRIPTOR);
       uint written = 0;
       
@@ -108,13 +96,12 @@ namespace Google.Cloud.Storage
     
     public STORAGE_DEVICE_DESCRIPTOR GetDeviceDescriptor()
     {
-      // https://stackoverflow.com/a/17354960/1230197
       var query = new STORAGE_PROPERTY_QUERY
       {
         PropertyId = STORAGE_PROPERTY_ID.StorageDeviceProperty,
         QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
       };
-      // https://stackoverflow.com/a/2069456/1230197
+      
       var result = default(STORAGE_DEVICE_DESCRIPTOR);
       uint written = 0;
       
@@ -157,11 +144,10 @@ namespace Google.Cloud.Storage
       return result;
     }
     
-    public string GetBusType()
+    public STORAGE_BUS_TYPE GetBusType()
     {
       STORAGE_DEVICE_DESCRIPTOR descriptor = GetDeviceDescriptor();
-      STORAGE_BUS_TYPE busType = descriptor.BusType;
-      return busType.ToString();
+      return descriptor.BusType;
     }
     // deviceId is the physical disk number, e.g. from Get-PhysicalDisk. If the
     // device is determined to be a GCE PD then its name will be returned.
@@ -320,8 +306,8 @@ namespace Google.Cloud.Storage
     private static SafeFileHandle OpenDrive(string physicalDrive)
     {
       SafeFileHandle hDevice = CreateFile(physicalDrive,
-        dwDesiredAccess: (uint)WinAPI.FILE_ACCESS_FLAGS.GENERIC_READ | (uint)WinAPI.FILE_ACCESS_FLAGS.GENERIC_WRITE,
-        dwShareMode: (uint)WinAPI.FILE_SHARE.READ,
+        dwDesiredAccess: (uint)ACCESS_TYPES.GENERIC_READ | (uint)ACCESS_TYPES.GENERIC_WRITE,
+        dwShareMode: (uint)FILE_SHARE.READ,
         lpSecurityAttributes: IntPtr.Zero,
         dwCreationDisposition: (uint)WinAPI.CreateDisposition.OPEN_EXISTING,
         dwFlagsAndAttributes: 0,
@@ -338,20 +324,23 @@ namespace Google.Cloud.Storage
       return hDevice;
     }
 
-    // Returns a list of the deviceIds of all of the physical disks attached
-    // to the system. This is equivalent to running
-    // `(Get-PhysicalDisk).deviceId` in PowerShell.
+    /// <summary>
+    /// Returns a list of the device Ids of all of the physical disks attached
+    /// to the system. This is equivalent to running
+    /// `(Get-PhysicalDisk).deviceId` in PowerShell.
+    /// </summary>
+    /// <returns></returns>
     public static IEnumerable<string> GetAllPhysicalDeviceIds()
     {
-      // Adapted from https://stackoverflow.com/a/39869074/1230197
       IEnumerable<string> physicalDrives;
 
-      var query = new WqlObjectQuery("SELECT * FROM Win32_DiskDrive");
-      using (var searcher = new ManagementObjectSearcher(query))
+      WqlObjectQuery query = new("SELECT * FROM Win32_DiskDrive");
+      using (ManagementObjectSearcher searcher = new(query))
       {
         physicalDrives = searcher.Get()
           .OfType<ManagementObject>()
-          .Select(o => o.Properties["DeviceID"].Value.ToString());
+          .Select(o => o.Properties["DeviceID"].Value.ToString())
+          .Where(id => !string.IsNullOrEmpty(id))!;
       }
       
       // Strip off '\\.\PHYSICALDRIVE' prefix

@@ -93,7 +93,6 @@ namespace Google.Cloud.Storage
               Console.WriteLine(device.GetDeviceDescriptor());
               Console.WriteLine();
             }
-
             if (options.StorageDeviceIdDescriptor)
             {
               Console.WriteLine($"{nameof(STORAGE_DEVICE_ID_DESCRIPTOR)}:");

@@ -13,4 +13,8 @@
     <PackageReference Include="System.Management.Automation" Version="7.2.6" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft\Microsoft.csproj" />
+  </ItemGroup>
+
 </Project>

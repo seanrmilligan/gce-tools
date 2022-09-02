@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // https://docs.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-storage_device_id_descriptor
 using System.Runtime.InteropServices;
-using Google.Cloud.Storage.Extensions;
 using DWORD = System.UInt32;
 using BYTE = System.Byte;
 

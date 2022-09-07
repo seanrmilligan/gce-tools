@@ -246,54 +246,69 @@ namespace Google.Cloud.Storage
       return null;
     }
 
+    public void NvmeIdentifySpecificNamespace(int namespaceId)
+    {
+      
+    }
+
     public string NvmeIdentify(NVME_IDENTIFY_CNS_CODES identifyCode)
     {
-      STORAGE_PROTOCOL_SPECIFIC_DATA protocolSpecificData = default;
-      protocolSpecificData = new STORAGE_PROTOCOL_SPECIFIC_DATA
+      int NVME_MAX_LOG_SIZE = 4096;
+      
+      STORAGE_PROPERTY_QUERY query = new()
+      {
+        PropertyId = STORAGE_PROPERTY_ID.StorageAdapterProtocolSpecificProperty,
+        QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
+      };
+      STORAGE_PROTOCOL_SPECIFIC_DATA protocolSpecificData = new()
       {
         ProtocolType = STORAGE_PROTOCOL_TYPE.ProtocolTypeNvme,
         DataType = (uint)STORAGE_PROTOCOL_NVME_DATA_TYPE.NVMeDataTypeIdentify,
-        ProtocolDataRequestValue = (uint)identifyCode,
-        ProtocolDataRequestSubValue = 0,
-        ProtocolDataOffset = (uint)Marshal.SizeOf(protocolSpecificData),
-        ProtocolDataLength = 0
-      };
-      
-      var query = new STORAGE_PROPERTY_QUERY
-      {
-        PropertyId = STORAGE_PROPERTY_ID.StorageAdapterProtocolSpecificProperty,
-        QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery,
-        AdditionalParameters = protocolSpecificData.ToBytes()
+        ProtocolDataRequestValue = (uint)NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_SPECIFIC_NAMESPACE,
+        ProtocolDataRequestSubValue = 1,
+        ProtocolDataOffset = (uint)Marshal.SizeOf(typeof(STORAGE_PROTOCOL_SPECIFIC_DATA)),
+        ProtocolDataLength = (uint)NVME_MAX_LOG_SIZE
       };
 
-      int bufferSize = 4096 * 2;
+      
+      int additionalParametersOffset = Marshal
+        .OffsetOf<STORAGE_PROPERTY_QUERY>(nameof(STORAGE_PROPERTY_QUERY.AdditionalParameters))
+        .ToInt32();
+      
+      int bufferSize = additionalParametersOffset 
+        + Marshal.SizeOf(typeof(STORAGE_PROTOCOL_SPECIFIC_DATA))
+        + NVME_MAX_LOG_SIZE;
+      
       IntPtr ptr = Marshal.AllocHGlobal(bufferSize);
       Marshal.Copy(new byte[bufferSize], 0, ptr, bufferSize);
       
       // write our query to the allocated memory
       Marshal.StructureToPtr(query, ptr, true);
+      Console.WriteLine(Marshal.PtrToStructure<Page>(ptr).ToHexString().Substring(0, 150));
+      Marshal.StructureToPtr(protocolSpecificData, ptr + additionalParametersOffset, true);
+      Console.WriteLine(Marshal.PtrToStructure<Page>(ptr).ToHexString().Substring(0, 150));
       
-      var result = default(STORAGE_PROTOCOL_DATA_DESCRIPTOR);
+      
+      
+      STORAGE_PROTOCOL_DATA_DESCRIPTOR result = default;
       uint written = 0;
       bool ok = DeviceIoControl(
         hDevice: _hDevice,
         dwIoControlCode: IOCTL_STORAGE_QUERY_PROPERTY,
         lpInBuffer: ptr,
-        nInBufferSize: (uint)Marshal.SizeOf(query),
+        nInBufferSize: (uint)bufferSize,
         lpOutBuffer: ptr,
-        nOutBufferSize: Marshal.SizeOf(result),
+        nOutBufferSize: bufferSize,
         lpBytesReturned: ref written,
         lpOverlapped: IntPtr.Zero);
       
       // read the response back from the same memory (the query was overwritten)
       result = Marshal.PtrToStructure<STORAGE_PROTOCOL_DATA_DESCRIPTOR>(ptr);
       Page buffer = Marshal.PtrToStructure<Page>(ptr);
-      Page buffer2 = Marshal.PtrToStructure<Page>(ptr + 4096);
       Console.WriteLine(result.ToString());
       if (written > 0)
       {
         Console.WriteLine(buffer.ToHexString());
-        Console.WriteLine(buffer2.ToHexString());
       }
       
       Marshal.FreeHGlobal(ptr);

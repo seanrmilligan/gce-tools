@@ -41,7 +41,7 @@ namespace Google.Cloud.Storage.Windows.winioctl
         /// Contains an array of bytes that can be used to retrieve additional
         /// parameters for specific queries.
         /// </summary>
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1024)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
         public byte[] AdditionalParameters;
     }
 }

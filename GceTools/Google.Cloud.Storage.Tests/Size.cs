@@ -16,7 +16,7 @@ namespace Google.Cloud.Storage.Tests
         [Test]
         public void OfStorageAdapterDescriptorIsThirtyTwoBytes()
         {
-            STORAGE_ADAPTER_DESCRIPTOR example = default(STORAGE_ADAPTER_DESCRIPTOR);
+            STORAGE_ADAPTER_DESCRIPTOR example = default;
             Assert.That(Marshal.SizeOf(example), Is.EqualTo(32));
         }
 
@@ -30,7 +30,7 @@ namespace Google.Cloud.Storage.Tests
             // expected per the Microsoft documentation.
             //
             // Therefore, the expected size is 40 bytes + 1023 bytes = 1063 bytes
-            STORAGE_DEVICE_DESCRIPTOR example = default(STORAGE_DEVICE_DESCRIPTOR);
+            STORAGE_DEVICE_DESCRIPTOR example = default;
             Assert.That(OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
                 nameof(STORAGE_DEVICE_DESCRIPTOR.Version)), Is.EqualTo(0));
             Assert.That(OffsetOf<STORAGE_DEVICE_DESCRIPTOR>(
@@ -68,7 +68,7 @@ namespace Google.Cloud.Storage.Tests
             // expected per the Microsoft documentation.
             //
             // Therefore, the expected size is 13 bytes + 511 bytes = 524 bytes
-            STORAGE_DEVICE_ID_DESCRIPTOR example = default(STORAGE_DEVICE_ID_DESCRIPTOR);
+            STORAGE_DEVICE_ID_DESCRIPTOR example = default;
             Assert.That(Marshal.SizeOf(example), Is.EqualTo(524));
         }
 
@@ -81,7 +81,7 @@ namespace Google.Cloud.Storage.Tests
         public void OfStorageProtocolSpecificDataIsFortyBytes()
         {
             // TODO: Confirm
-            STORAGE_PROTOCOL_SPECIFIC_DATA example = default(STORAGE_PROTOCOL_SPECIFIC_DATA);
+            STORAGE_PROTOCOL_SPECIFIC_DATA example = default;
             Assert.That(Marshal.SizeOf(example), Is.EqualTo(40));
         }
 

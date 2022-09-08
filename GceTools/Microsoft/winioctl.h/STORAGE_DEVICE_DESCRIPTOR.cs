@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // https://docs.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-storage_device_descriptor
 
-using System.Linq;
 using System.Runtime.InteropServices;
 using BOOLEAN = System.Boolean;
 using BYTE = System.Byte;
 using DWORD = System.UInt32;
-using ULONG = System.UInt32;
 
-namespace Google.Cloud.Storage.Windows.winioctl
+namespace Microsoft.winioctl.h
 {
     /// <summary>
     /// Used in conjunction with the IOCTL_STORAGE_QUERY_PROPERTY control code

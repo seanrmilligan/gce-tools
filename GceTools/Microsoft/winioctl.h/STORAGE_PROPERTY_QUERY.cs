@@ -3,7 +3,7 @@
 using System.Runtime.InteropServices;
 
 // Adapted from winioctl.h
-namespace Google.Cloud.Storage.Windows.winioctl
+namespace Microsoft.winioctl.h
 {
     // const int StoragePropertyQuerySize = 1024;
     

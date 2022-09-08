@@ -12,7 +12,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Google.Cloud.Storage.Extensions;
-using Google.Cloud.Storage.Windows.nvme;
 
 namespace Google.Cloud.Storage
 {

@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 
 // Adapted from winioctl.h
-namespace Google.Cloud.Storage.Windows.winioctl
+namespace Microsoft.winioctl.h
 {
     public enum STORAGE_IDENTIFIER_CODE_SET : int
     {

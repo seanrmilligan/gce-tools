@@ -1,7 +1,7 @@
 ﻿// https://docs.microsoft.com/en-us/windows/win32/api/winioctl/ne-winioctl-storage_protocol_type
 // Copyright (c) Microsoft Corporation. All rights reserved.
 
-namespace Google.Cloud.Storage.Windows.winioctl
+namespace Microsoft.winioctl.h
 {
     /// <summary>
     /// Specifies the protocol of a storage device.

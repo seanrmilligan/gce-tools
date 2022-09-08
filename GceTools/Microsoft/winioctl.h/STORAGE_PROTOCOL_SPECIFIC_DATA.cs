@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using DWORD = System.UInt32;
 
 // Adapted from winioctl.h
-namespace Google.Cloud.Storage.Windows.winioctl
+namespace Microsoft.winioctl.h
 {
     /// <summary>
     /// Describes protocol-specific device data, provided in the input and

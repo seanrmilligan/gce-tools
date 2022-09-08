@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 
 // Adapted from winioctl.h
-namespace Google.Cloud.Storage.Windows.winioctl
+namespace Microsoft.winioctl.h
 {
     /// <summary>Types of queries</summary>
     public enum STORAGE_QUERY_TYPE : int

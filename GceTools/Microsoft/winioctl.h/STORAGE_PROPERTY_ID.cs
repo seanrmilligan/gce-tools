@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 
 // Adapted from winioctl.h
-namespace Google.Cloud.Storage.Windows.winioctl
+namespace Microsoft.winioctl.h
 {
     /// <summary>Enumerates the possible values of the PropertyId member of the
     /// <see cref="STORAGE_PROPERTY_QUERY"/> structure passed as input to the

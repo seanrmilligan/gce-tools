@@ -1,7 +1,7 @@
 ﻿// https://docs.microsoft.com/en-us/windows/win32/api/nvme/ne-nvme-nvme_identify_cns_codes
 // Copyright (c) Microsoft Corporation. All rights reserved.
 
-namespace Google.Cloud.Storage.Windows.nvme
+namespace Microsoft.nvme.h
 {
     public enum NVME_IDENTIFY_CNS_CODES
     {

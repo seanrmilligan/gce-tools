@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 
 using System.Runtime.InteropServices;
-
 using UCHAR = System.Byte;
 using USHORT = System.UInt16;
 
-namespace Google.Cloud.Storage.Windows.winioctl
+namespace Microsoft.winioctl.h
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct STORAGE_IDENTIFIER

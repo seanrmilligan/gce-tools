@@ -1,4 +1,4 @@
-namespace Google.Cloud.Storage.Windows.winioctl.h;
+namespace Microsoft.winioctl.h;
 
 public class ControlCodes
 {

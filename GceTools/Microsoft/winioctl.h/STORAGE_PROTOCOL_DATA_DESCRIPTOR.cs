@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using DWORD = System.UInt32;
 
 // Adapted from winioctl.h
-namespace Google.Cloud.Storage.Windows.winioctl
+namespace Microsoft.winioctl.h
 {
     [StructLayout(LayoutKind.Sequential)]
     public readonly struct STORAGE_PROTOCOL_DATA_DESCRIPTOR

@@ -3,12 +3,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
-using AlphaOmega.Debug;
 using Google.Cloud.Storage.Extensions;
-using Google.Cloud.Storage.Windows.nvme;
-using Google.Cloud.Storage.Windows.winioctl;
-using Google.Cloud.Storage.Windows.winioctl.h;
+using Microsoft.fileapi.h;
+using Microsoft.nvme.h;
 using Microsoft.Win32.SafeHandles;
+using Microsoft.winioctl.h;
 using Microsoft.winnt.h;
 using LPSECURITY_ATTRIBUTES = System.IntPtr;
 using LPOVERLAPPED = System.IntPtr;
@@ -16,8 +15,8 @@ using HANDLE = System.IntPtr;
 using DWORD = System.UInt32;
 using LPCTSTR = System.String;
 
-using static Google.Cloud.Storage.Windows.kernel32.IOApiSet;
-using static Google.Cloud.Storage.Windows.kernel32.FileApi;
+using static Microsoft.kernel32.h.IOApiSet;
+using static Microsoft.kernel32.h.FileApi;
 
 namespace Google.Cloud.Storage
 {
@@ -246,15 +245,13 @@ namespace Google.Cloud.Storage
       return null;
     }
 
-    public void NvmeIdentifySpecificNamespace(int namespaceId)
+    public void NvmeIdentifySpecificNamespace(uint namespaceId)
     {
-      
+      return NvmeIdentify(NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_SPECIFIC_NAMESPACE, namespaceId);
     }
 
-    public string NvmeIdentify(NVME_IDENTIFY_CNS_CODES identifyCode)
+    public STORAGE_PROTOCOL_DATA_DESCRIPTOR NvmeIdentify(NVME_IDENTIFY_CNS_CODES identifyCode, uint subValue)
     {
-      int NVME_MAX_LOG_SIZE = 4096;
-      
       STORAGE_PROPERTY_QUERY query = new()
       {
         PropertyId = STORAGE_PROPERTY_ID.StorageAdapterProtocolSpecificProperty,
@@ -267,30 +264,33 @@ namespace Google.Cloud.Storage
         ProtocolDataRequestValue = (uint)NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_SPECIFIC_NAMESPACE,
         ProtocolDataRequestSubValue = 1,
         ProtocolDataOffset = (uint)Marshal.SizeOf(typeof(STORAGE_PROTOCOL_SPECIFIC_DATA)),
-        ProtocolDataLength = (uint)NVME_MAX_LOG_SIZE
+        ProtocolDataLength = Constants.NVME_MAX_LOG_SIZE
       };
 
-      
+      // STORAGE_PROTOCOL_SPECIFIC_DATA forms the AdditionalParameters field of
+      // the STORAGE_PROPERTY_QUERY, so we find where AdditionalParameters is in
+      // order to write protocolSpecificData to memory at that address.
       int additionalParametersOffset = Marshal
         .OffsetOf<STORAGE_PROPERTY_QUERY>(nameof(STORAGE_PROPERTY_QUERY.AdditionalParameters))
         .ToInt32();
       
+      // The bufferSize is the sum of:
+      // - the first N bytes of the STORAGE_PROPERTY_QUERY, up to but not
+      //   including the AdditionalParameters field
+      // - the size of AdditionalParameters, which varies but in this case
+      //   contains STORAGE_PROTOCOL_SPECIFIC_DATA
+      // - the maximum size of the response payload, NVME_MAX_LOG_SIZE
       int bufferSize = additionalParametersOffset 
         + Marshal.SizeOf(typeof(STORAGE_PROTOCOL_SPECIFIC_DATA))
-        + NVME_MAX_LOG_SIZE;
+        + Constants.NVME_MAX_LOG_SIZE;
       
       IntPtr ptr = Marshal.AllocHGlobal(bufferSize);
       Marshal.Copy(new byte[bufferSize], 0, ptr, bufferSize);
       
       // write our query to the allocated memory
       Marshal.StructureToPtr(query, ptr, true);
-      Console.WriteLine(Marshal.PtrToStructure<Page>(ptr).ToHexString().Substring(0, 150));
       Marshal.StructureToPtr(protocolSpecificData, ptr + additionalParametersOffset, true);
-      Console.WriteLine(Marshal.PtrToStructure<Page>(ptr).ToHexString().Substring(0, 150));
       
-      
-      
-      STORAGE_PROTOCOL_DATA_DESCRIPTOR result = default;
       uint written = 0;
       bool ok = DeviceIoControl(
         hDevice: _hDevice,
@@ -303,19 +303,14 @@ namespace Google.Cloud.Storage
         lpOverlapped: IntPtr.Zero);
       
       // read the response back from the same memory (the query was overwritten)
-      result = Marshal.PtrToStructure<STORAGE_PROTOCOL_DATA_DESCRIPTOR>(ptr);
-      Page buffer = Marshal.PtrToStructure<Page>(ptr);
-      Console.WriteLine(result.ToString());
-      if (written > 0)
-      {
-        Console.WriteLine(buffer.ToHexString());
-      }
+      STORAGE_PROTOCOL_DATA_DESCRIPTOR result = Marshal
+        .PtrToStructure<STORAGE_PROTOCOL_DATA_DESCRIPTOR>(ptr);
       
       Marshal.FreeHGlobal(ptr);
       
       ThrowOnFailure(ok);
       
-      return string.Empty;
+      return result;
     }
 
     private static SafeFileHandle OpenDrive(string physicalDrive)
@@ -324,7 +319,7 @@ namespace Google.Cloud.Storage
         dwDesiredAccess: (uint)ACCESS_TYPES.GENERIC_READ | (uint)ACCESS_TYPES.GENERIC_WRITE,
         dwShareMode: (uint)FILE_SHARE.READ,
         lpSecurityAttributes: IntPtr.Zero,
-        dwCreationDisposition: (uint)WinAPI.CreateDisposition.OPEN_EXISTING,
+        dwCreationDisposition: (uint)CreateDisposition.OPEN_EXISTING,
         dwFlagsAndAttributes: 0,
         hTemplateFile: IntPtr.Zero
       );

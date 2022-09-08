@@ -1,14 +1,10 @@
 ﻿using System.Runtime.InteropServices;
-using Google.Cloud.Storage.Windows.winioctl;
 using Microsoft.Win32.SafeHandles;
-
-using LPSECURITY_ATTRIBUTES = System.IntPtr;
+using Microsoft.winioctl.h;
 using LPOVERLAPPED = System.IntPtr;
-using HANDLE = System.IntPtr;
 using DWORD = System.UInt32;
-using LPCTSTR = System.String;
 
-namespace Google.Cloud.Storage.Windows.kernel32
+namespace Microsoft.kernel32.h
 {
     public class IOApiSet
     {

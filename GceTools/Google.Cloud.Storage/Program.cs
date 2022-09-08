@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
 using CommandLine;
 using Google.Cloud.Storage.Extensions;
-using Google.Cloud.Storage.Windows.nvme;
-using Google.Cloud.Storage.Windows.winioctl;
+using Microsoft.nvme.h;
+using Microsoft.winioctl.h;
 
 namespace Google.Cloud.Storage
 {
@@ -78,7 +78,7 @@ namespace Google.Cloud.Storage
             if (options.NvmeIdentify)
             {
               Console.WriteLine("NVME IDENTIFY:");
-              Console.WriteLine(device.NvmeIdentify(NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_CONTROLLER));
+              Console.WriteLine(device.NvmeIdentifySpecificNamespace(1));
               Console.WriteLine();
             }
             if (options.StorageAdapterDescriptor)

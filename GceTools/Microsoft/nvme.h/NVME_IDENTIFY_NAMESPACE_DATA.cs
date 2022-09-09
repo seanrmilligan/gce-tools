@@ -71,7 +71,7 @@ public class NVME_IDENTIFY_NAMESPACE_DATA
 
     [FieldOffset(48)]
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
-    public UCHAR NVMCAP;                // byte 48:63 O - NVM Capacity (NVMCAP)
+    public UCHAR[] NVMCAP;                // byte 48:63 O - NVM Capacity (NVMCAP)
 
     [FieldOffset(64)]
     public USHORT NPWG;                 // byte 64:65 O - Namespace Preferred Write Granularity (NPWG)
@@ -115,15 +115,15 @@ public class NVME_IDENTIFY_NAMESPACE_DATA
     
     [FieldOffset(104)]
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
-    public UCHAR NGUID;                 // byte 104:119 O - Namespace Globally Unique Identifier (NGUID)
+    public UCHAR[] NGUID;                 // byte 104:119 O - Namespace Globally Unique Identifier (NGUID)
     
     [FieldOffset(120)]
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-    public UCHAR EUI64;                 // byte 120:127 M - IEEE Extended Unique Identifier (EUI64)
+    public UCHAR[] EUI64;                 // byte 120:127 M - IEEE Extended Unique Identifier (EUI64)
 
     [FieldOffset(128)]
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
-    public NVME_LBA_FORMAT LBAF;        // byte 128:131 M - LBA Format 0 Support (LBAF0)
+    public NVME_LBA_FORMAT[] LBAF;        // byte 128:131 M - LBA Format 0 Support (LBAF0)
                                         // byte 132:135 O - LBA Format 1 Support (LBAF1)
                                         // byte 136:139 O - LBA Format 2 Support (LBAF2)
                                         // byte 140:143 O - LBA Format 3 Support (LBAF3)
@@ -148,7 +148,7 @@ public class NVME_IDENTIFY_NAMESPACE_DATA
     /// </summary>
     [FieldOffset(384)]
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3712)]
-    public UCHAR VS;
+    public UCHAR[] VS;
 
 }
 

@@ -245,12 +245,37 @@ namespace Google.Cloud.Storage
       return null;
     }
 
-    public void NvmeIdentifySpecificNamespace(uint namespaceId)
+    public string GetDeviceName()
     {
-      return NvmeIdentify(NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_SPECIFIC_NAMESPACE, namespaceId);
+      return GetBusType() switch
+      {
+        STORAGE_BUS_TYPE.BusTypeNvme => GetNvmeDeviceName(),
+        STORAGE_BUS_TYPE.BusTypeScsi => Get_GcePdName(),
+        _ => string.Empty
+      };
     }
 
-    public STORAGE_PROTOCOL_DATA_DESCRIPTOR NvmeIdentify(NVME_IDENTIFY_CNS_CODES identifyCode, uint subValue)
+    public string GetNvmeDeviceName()
+    {
+      // Google writes NVMe vendor-specific data as a JSON string to the start
+      // of the vendor-specific section of the NVMe Identify Specific Namespace
+      // page.
+      string jsonString = Encoding.UTF8.GetString(bytes:
+        NvmeIdentifySpecificNamespace(1)
+          .VS
+          .TakeWhile(b => b != 0)
+          .ToArray());
+      return string.Empty;
+    }
+
+    public NVME_IDENTIFY_NAMESPACE_DATA NvmeIdentifySpecificNamespace(uint namespaceId)
+    {
+      return NvmeIdentify<NVME_IDENTIFY_NAMESPACE_DATA>(
+        NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_SPECIFIC_NAMESPACE,
+        namespaceId);
+    }
+
+    public T NvmeIdentify<T>(NVME_IDENTIFY_CNS_CODES identifyCode, uint subValue)
     {
       STORAGE_PROPERTY_QUERY query = new()
       {
@@ -301,16 +326,28 @@ namespace Google.Cloud.Storage
         nOutBufferSize: bufferSize,
         lpBytesReturned: ref written,
         lpOverlapped: IntPtr.Zero);
-      
-      // read the response back from the same memory (the query was overwritten)
-      STORAGE_PROTOCOL_DATA_DESCRIPTOR result = Marshal
-        .PtrToStructure<STORAGE_PROTOCOL_DATA_DESCRIPTOR>(ptr);
+
+      T? identifyStruct = default;
+
+      if (ok)
+      {
+        // read the response back from the same memory (the query was overwritten)
+        STORAGE_PROTOCOL_DATA_DESCRIPTOR dataDescriptor = Marshal
+          .PtrToStructure<STORAGE_PROTOCOL_DATA_DESCRIPTOR>(ptr);
+
+        long identifyOffset = Marshal
+          .OffsetOf<STORAGE_PROTOCOL_DATA_DESCRIPTOR>(nameof(STORAGE_PROTOCOL_DATA_DESCRIPTOR.ProtocolSpecificData))
+          .ToInt32()
+          + dataDescriptor.ProtocolSpecificData.ProtocolDataOffset;
+
+        identifyStruct = Marshal.PtrToStructure<T>(ptr + (int)identifyOffset);
+      }
       
       Marshal.FreeHGlobal(ptr);
       
       ThrowOnFailure(ok);
       
-      return result;
+      return identifyStruct!;
     }
 
     private static SafeFileHandle OpenDrive(string physicalDrive)

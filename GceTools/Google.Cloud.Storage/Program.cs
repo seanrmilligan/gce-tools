@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Text;
 using CommandLine;
 using Google.Cloud.Storage.Extensions;
 using Microsoft.nvme.h;
@@ -77,9 +78,12 @@ namespace Google.Cloud.Storage
             }
             if (options.NvmeIdentify)
             {
+              NVME_IDENTIFY_NAMESPACE_DATA data = device.NvmeIdentifySpecificNamespace(1);
+              //int index = data.VS.IndexOf((byte)0x7B);
+              string json = Encoding.ASCII.GetString(data.VS.TakeWhile(b => b != 0).ToArray());
               Console.WriteLine("NVME IDENTIFY:");
-              Console.WriteLine(device.NvmeIdentifySpecificNamespace(1));
-              Console.WriteLine();
+              Console.WriteLine(json);
+              Console.WriteLine(data);
             }
             if (options.StorageAdapterDescriptor)
             {

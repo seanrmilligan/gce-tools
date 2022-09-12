@@ -108,62 +108,16 @@ namespace Microsoft.winioctl.h
         /// Indicates the number of bytes of bus-specific data that have been
         /// appended to this descriptor.
         /// </summary>
-        [FieldOffset(29)]
+        [FieldOffset(32)]
         public readonly DWORD RawPropertiesLength;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        [FieldOffset(33)]
-        private readonly BYTE RawDeviceProperties0;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [FieldOffset(34)]
-        private readonly BYTE RawDeviceProperties1;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [FieldOffset(35)]
-        private readonly BYTE RawDeviceProperties2;
-        
-        [FieldOffset(36)]
-        private readonly BYTE RawDeviceProperties3;
-        
-        [FieldOffset(37)]
-        private readonly BYTE RawDeviceProperties4;
-        
-        [FieldOffset(38)]
-        private readonly BYTE RawDeviceProperties5;
-        
-        [FieldOffset(39)]
-        private readonly BYTE RawDeviceProperties6;
-        
         /// <summary>
         /// Contains an array of length one that serves as a place holder for
         /// the first byte of the bus specific property data.
         /// </summary>
-        [FieldOffset(40)]
+        [FieldOffset(36)]
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1024)]
-        private readonly BYTE[] RawDeviceProperties7;
-        
-        public BYTE[] RawDeviceProperties()
-        {
-
-            return new[]
-                {
-                    RawDeviceProperties0,
-                    RawDeviceProperties1,
-                    RawDeviceProperties2,
-                    RawDeviceProperties3,
-                    RawDeviceProperties4,
-                    RawDeviceProperties5,
-                    RawDeviceProperties6
-                }.Concat(RawDeviceProperties7)
-                .ToArray();
-        }
+        private readonly BYTE[] RawDeviceProperties;
 
         public override string ToString()
         {
@@ -181,7 +135,7 @@ namespace Microsoft.winioctl.h
                 $"SerialNumberOffset:    {SerialNumberOffset}",
                 $"BusType:               {BusType}",
                 $"RawPropertiesLength:   {RawPropertiesLength}",
-                $"RawDeviceProperties:   {System.Text.Encoding.ASCII.GetString(RawDeviceProperties())}"
+                $"RawDeviceProperties:   {System.Text.Encoding.ASCII.GetString(RawDeviceProperties)}"
             });
         }
     }

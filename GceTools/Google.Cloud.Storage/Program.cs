@@ -2,8 +2,8 @@
 using System.Text;
 using CommandLine;
 using Google.Cloud.Storage.Extensions;
-using Microsoft.nvme.h;
-using Microsoft.winioctl.h;
+using Microsoft.Windows.nvme.h;
+using Microsoft.Windows.winioctl.h;
 
 namespace Google.Cloud.Storage
 {

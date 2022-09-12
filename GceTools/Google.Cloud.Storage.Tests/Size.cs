@@ -1,5 +1,5 @@
 ﻿using System.Runtime.InteropServices;
-using Microsoft.winioctl.h;
+using Microsoft.Windows.winioctl.h;
 using NUnit.Framework;
 
 namespace Google.Cloud.Storage.Tests

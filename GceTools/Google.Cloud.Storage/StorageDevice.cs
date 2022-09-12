@@ -3,20 +3,20 @@ using System.Diagnostics.CodeAnalysis;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
-using Google.Cloud.Storage.Extensions;
-using Microsoft.fileapi.h;
-using Microsoft.nvme.h;
+using Google.Cloud.Storage.ManagedModels;
 using Microsoft.Win32.SafeHandles;
-using Microsoft.winioctl.h;
-using Microsoft.winnt.h;
+using Microsoft.Windows.fileapi.h;
+using Microsoft.Windows.nvme.h;
+using Microsoft.Windows.winioctl.h;
+using Microsoft.Windows.winnt.h;
 using LPSECURITY_ATTRIBUTES = System.IntPtr;
 using LPOVERLAPPED = System.IntPtr;
 using HANDLE = System.IntPtr;
 using DWORD = System.UInt32;
 using LPCTSTR = System.String;
 
-using static Microsoft.kernel32.h.IOApiSet;
-using static Microsoft.kernel32.h.FileApi;
+using static Microsoft.Windows.kernel32.h.IOApiSet;
+using static Microsoft.Windows.kernel32.h.FileApi;
 
 namespace Google.Cloud.Storage
 {
@@ -70,7 +70,7 @@ namespace Google.Cloud.Storage
 
     public STORAGE_ADAPTER_DESCRIPTOR GetAdapterDescriptor()
     {
-      var query = new STORAGE_PROPERTY_QUERY
+      STORAGE_PROPERTY_QUERY query = new()
       {
         PropertyId = STORAGE_PROPERTY_ID.StorageAdapterProperty,
         QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
@@ -115,32 +115,105 @@ namespace Google.Cloud.Storage
         lpOverlapped: IntPtr.Zero);
       ThrowOnFailure(ok);
       
+      
       return result;
     }
 
-    public STORAGE_DEVICE_ID_DESCRIPTOR GetDeviceIdDescriptor()
+    public StorageDeviceIdDescriptor GetDeviceIdDescriptor()
     {
-      var query = new STORAGE_PROPERTY_QUERY
+      int bufferSize = 1024;
+      
+      IntPtr ptr = Marshal.AllocHGlobal(bufferSize);
+      Marshal.Copy(new byte[bufferSize], 0, ptr, bufferSize);
+      
+      STORAGE_PROPERTY_QUERY query = new()
       {
         PropertyId = STORAGE_PROPERTY_ID.StorageDeviceIdProperty,
         QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
       };
       
-      var result = default(STORAGE_DEVICE_ID_DESCRIPTOR);
-      uint written = 0;
+      // write our query to the allocated memory
+      Marshal.StructureToPtr(query, ptr, true);
       
+      uint written = 0;
       bool ok = DeviceIoControl(
         hDevice: _hDevice,
         dwIoControlCode: IOCTL_STORAGE_QUERY_PROPERTY,
-        lpInBuffer: ref query,
-        nInBufferSize: (uint)Marshal.SizeOf(query),
-        lpOutBuffer: out result,
-        nOutBufferSize: Marshal.SizeOf(result),
+        lpInBuffer: ptr,
+        nInBufferSize: (uint)bufferSize,
+        lpOutBuffer: ptr,
+        nOutBufferSize: bufferSize,
         lpBytesReturned: ref written,
         lpOverlapped: IntPtr.Zero);
+
+      StorageDeviceIdDescriptor result = default;
+
+      if (ok)
+      {
+        STORAGE_DEVICE_ID_DESCRIPTOR storageDeviceIdDescriptor = Marshal
+          .PtrToStructure<STORAGE_DEVICE_ID_DESCRIPTOR>(ptr);
+        
+        int identifiersOffset = Marshal
+          .OffsetOf<STORAGE_DEVICE_ID_DESCRIPTOR>(nameof(STORAGE_DEVICE_ID_DESCRIPTOR.Identifiers))
+          .ToInt32();
+
+        StorageIdentifier[] identifiers = GetStorageIdentifiers(
+          buffer: ptr + identifiersOffset,
+          numIdentifiers: storageDeviceIdDescriptor.NumberOfIdentifiers);
+
+        result = new StorageDeviceIdDescriptor()
+        {
+          Version = storageDeviceIdDescriptor.Version,
+          Size = storageDeviceIdDescriptor.Size,
+          NumberOfIdentifiers = storageDeviceIdDescriptor.NumberOfIdentifiers,
+          Identifiers = identifiers
+        };
+      }
+      
+      Marshal.FreeHGlobal(ptr);
+      
       ThrowOnFailure(ok);
 
       return result;
+    }
+
+    public StorageIdentifier[] GetStorageIdentifiers(IntPtr buffer, uint numIdentifiers)
+    {
+      StorageIdentifier[] results = new StorageIdentifier[numIdentifiers];
+      
+      // TODO(seanrmilligan): The bufferSize is assumed to be sufficient.
+      // We do not have guardrails to stop us from reading past the end.
+      IntPtr ptr = buffer;
+      
+      for (uint i = 0; i < numIdentifiers; i++)
+      {
+        STORAGE_IDENTIFIER storageIdentifier = Marshal
+          .PtrToStructure<STORAGE_IDENTIFIER>(ptr);
+        int identifierOffset = Marshal
+          .OffsetOf<STORAGE_IDENTIFIER>(nameof(STORAGE_IDENTIFIER.Identifier))
+          .ToInt32();
+        
+        byte[] identifier = new byte[storageIdentifier.IdentifierSize];
+        Marshal.Copy(
+          source: ptr + identifierOffset,
+          destination: identifier,
+          startIndex: 0,
+          length: storageIdentifier.IdentifierSize);
+
+        results[i] = new StorageIdentifier
+        {
+          CodeSet = storageIdentifier.CodeSet,
+          Type = storageIdentifier.Type,
+          IdentifierSize = storageIdentifier.IdentifierSize,
+          NextOffset = storageIdentifier.NextOffset,
+          Association = storageIdentifier.Association,
+          Identifier = identifier
+        };
+
+        ptr += storageIdentifier.NextOffset;
+      }
+
+      return results;
     }
     
     public STORAGE_BUS_TYPE GetBusType()
@@ -148,101 +221,22 @@ namespace Google.Cloud.Storage
       STORAGE_DEVICE_DESCRIPTOR descriptor = GetDeviceDescriptor();
       return descriptor.BusType;
     }
-    // deviceId is the physical disk number, e.g. from Get-PhysicalDisk. If the
-    // device is determined to be a GCE PD then its name will be returned.
-    //
-    // Throws:
-    //   System.ComponentModel.Win32Exception: if we could not open a handle for
-    //     the device (probably because deviceId is invalid)
-    //   InvalidOperationException: if the device is not a GCE PD.
-    public string Get_GcePdName()
+    
+    public string GetScsiPersistentDiskName()
     {
-      STORAGE_DEVICE_ID_DESCRIPTOR result = GetDeviceIdDescriptor();
+      StorageDeviceIdDescriptor deviceIdDescriptor = GetDeviceIdDescriptor();
 
-      uint numIdentifiers = result.NumberOfIdentifiers;
-      WriteDebugLine($"numIdentifiers: {numIdentifiers}");
+      string persistentDiskName = deviceIdDescriptor
+        .Identifiers
+        .Where(storageIdentifier =>
+          storageIdentifier.Type == STORAGE_IDENTIFIER_TYPE.StorageIdTypeVendorId &&
+          storageIdentifier.Association == STORAGE_ASSOCIATION_TYPE.StorageIdAssocDevice)
+        .Select(storageIdentifier => Encoding.ASCII.GetString(storageIdentifier.Identifier))
+        .FirstOrDefault(name => name.StartsWith(GoogleScsiPrefix))
+        ?.Substring(GoogleScsiPrefix.Length) ?? throw new InvalidOperationException(
+        message: $"DeviceId {Id} is not a GCE PD");
 
-      int identifierBufferStart = 0;
-      for (int i = 0; i < numIdentifiers; ++i)
-      {
-        // Example:
-        // https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.marshal.copy?view=netframework-4.7.2#System_Runtime_InteropServices_Marshal_Copy_System_Byte___System_Int32_System_IntPtr_System_Int32_.
-        // We don't know exactly how large this identifier is until we marshal
-        // the struct below. "BUFFER_SIZE" is used by
-        // STORAGE_DEVICE_ID_DESCRIPTOR for the combined size of all the
-        // identifiers so it's an upper bound on the size of this one.
-        IntPtr storageIdentifierBuffer =
-          Marshal.AllocHGlobal(512);
-        int identifiersBufferLeft =
-          512 - identifierBufferStart;
-        WriteDebugLine(
-          $"getting storageIdentifier {i} from memory [{identifierBufferStart}, {identifierBufferStart + identifiersBufferLeft})");
-        Marshal.Copy(result.Identifiers, identifierBufferStart,
-            storageIdentifierBuffer, identifiersBufferLeft);
-
-        var storageIdentifier =
-          Marshal.PtrToStructure<STORAGE_IDENTIFIER>(
-            storageIdentifierBuffer);
-
-        WriteDebugLine($"storageIdentifier type: {storageIdentifier.Type} ({(int)storageIdentifier.Type})");
-        WriteDebugLine(
-          $"storageIdentifier association: {storageIdentifier.Association} ({(int)storageIdentifier.Association})");
-        WriteDebugLine($"storageIdentifier size: {(int)storageIdentifier.IdentifierSize}");
-
-        if (storageIdentifier.Type == STORAGE_IDENTIFIER_TYPE.StorageIdTypeVendorId &&
-            storageIdentifier.Association == STORAGE_ASSOCIATION_TYPE.StorageIdAssocDevice)
-        {
-          IntPtr identifierData =
-            Marshal.AllocHGlobal(storageIdentifier.IdentifierSize + 1);
-          Marshal.Copy(storageIdentifier.Identifier, 0,
-            identifierData, storageIdentifier.IdentifierSize);
-
-          // Empirically the SCSI identifier for GCE PDs always begins with
-          // "Google". Physical disk objects passed to this function may
-          // represent storage devices other than PDs though - for example,
-          // Docker containers that are running have a "Msft Virtual Disk"
-          // associated with them (why this is considered a PhysicalDisk, I have
-          // no idea...). Therefore we check for the presence of the Google
-          // prefix and throw an exception if it's not found.
-          //
-          // TODO(pjh): make this more robust? Not sure if the Google prefix is
-          // guaranteed or subject to change in the future.
-          string fullName = Encoding.ASCII.GetString(
-            storageIdentifier.Identifier, 0, storageIdentifier.IdentifierSize);
-          if (!fullName.StartsWith(GoogleScsiPrefix))
-          {
-            var e = new InvalidOperationException(
-              $"deviceId {Id} maps to {fullName} which is not a GCE PD");
-            WriteDebugLine($"{e}");
-            throw e;
-          }
-          return fullName.Substring(GoogleScsiPrefix.Length);
-        }
-
-        // To get the start of the next identifier we need to advance
-        // by the length of the STORAGE_IDENTIFIER struct as well as
-        // the size of its variable-length data array. We subtract
-        // the size of the "byte[] Identifiers" member because it's
-        // included in the size of the data array.
-        //
-        // TODO(pjh): figure out how to make this more robust.
-        // Marshal.SizeOf(storageIdentifier) returns bonkers
-        // values when we set the SizeConst MarshalAs attribute (which
-        // we need to do in order to copy from the byte[] above). I
-        // couldn't figure out how to correctly calculate this value
-        // using Marshal.SizeOf, but it's 20 bytes - this value is
-        // fixed (for this platform at least) by the definition of
-        // STORAGE_IDENTIFIER in winioctl.h.
-        int advanceBy = 20 - sizeof(byte) + storageIdentifier.IdentifierSize;
-        WriteDebugLine(
-          $"advanceBy = {20} - {sizeof(byte)} + {storageIdentifier.IdentifierSize} = {advanceBy}");
-        identifierBufferStart += advanceBy;
-        WriteDebugLine($"will read next identifier starting at {identifierBufferStart}");
-        WriteDebugLine("");
-        Marshal.FreeHGlobal(storageIdentifierBuffer);
-      }
-      
-      return null;
+      return persistentDiskName;
     }
 
     public string GetDeviceName()
@@ -250,7 +244,7 @@ namespace Google.Cloud.Storage
       return GetBusType() switch
       {
         STORAGE_BUS_TYPE.BusTypeNvme => GetNvmeDeviceName(),
-        STORAGE_BUS_TYPE.BusTypeScsi => Get_GcePdName(),
+        STORAGE_BUS_TYPE.BusTypeScsi => GetScsiPersistentDiskName(),
         _ => string.Empty
       };
     }
@@ -277,21 +271,6 @@ namespace Google.Cloud.Storage
 
     public T NvmeIdentify<T>(NVME_IDENTIFY_CNS_CODES identifyCode, uint subValue)
     {
-      STORAGE_PROPERTY_QUERY query = new()
-      {
-        PropertyId = STORAGE_PROPERTY_ID.StorageAdapterProtocolSpecificProperty,
-        QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
-      };
-      STORAGE_PROTOCOL_SPECIFIC_DATA protocolSpecificData = new()
-      {
-        ProtocolType = STORAGE_PROTOCOL_TYPE.ProtocolTypeNvme,
-        DataType = (uint)STORAGE_PROTOCOL_NVME_DATA_TYPE.NVMeDataTypeIdentify,
-        ProtocolDataRequestValue = (uint)NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_SPECIFIC_NAMESPACE,
-        ProtocolDataRequestSubValue = 1,
-        ProtocolDataOffset = (uint)Marshal.SizeOf(typeof(STORAGE_PROTOCOL_SPECIFIC_DATA)),
-        ProtocolDataLength = Constants.NVME_MAX_LOG_SIZE
-      };
-
       // STORAGE_PROTOCOL_SPECIFIC_DATA forms the AdditionalParameters field of
       // the STORAGE_PROPERTY_QUERY, so we find where AdditionalParameters is in
       // order to write protocolSpecificData to memory at that address.
@@ -306,11 +285,26 @@ namespace Google.Cloud.Storage
       //   contains STORAGE_PROTOCOL_SPECIFIC_DATA
       // - the maximum size of the response payload, NVME_MAX_LOG_SIZE
       int bufferSize = additionalParametersOffset 
-        + Marshal.SizeOf(typeof(STORAGE_PROTOCOL_SPECIFIC_DATA))
-        + Constants.NVME_MAX_LOG_SIZE;
+                       + Marshal.SizeOf(typeof(STORAGE_PROTOCOL_SPECIFIC_DATA))
+                       + Constants.NVME_MAX_LOG_SIZE;
       
       IntPtr ptr = Marshal.AllocHGlobal(bufferSize);
       Marshal.Copy(new byte[bufferSize], 0, ptr, bufferSize);
+      
+      STORAGE_PROPERTY_QUERY query = new()
+      {
+        PropertyId = STORAGE_PROPERTY_ID.StorageAdapterProtocolSpecificProperty,
+        QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
+      };
+      STORAGE_PROTOCOL_SPECIFIC_DATA protocolSpecificData = new()
+      {
+        ProtocolType = STORAGE_PROTOCOL_TYPE.ProtocolTypeNvme,
+        DataType = (uint)STORAGE_PROTOCOL_NVME_DATA_TYPE.NVMeDataTypeIdentify,
+        ProtocolDataRequestValue = (uint)identifyCode,
+        ProtocolDataRequestSubValue = subValue,
+        ProtocolDataOffset = (uint)Marshal.SizeOf(typeof(STORAGE_PROTOCOL_SPECIFIC_DATA)),
+        ProtocolDataLength = Constants.NVME_MAX_LOG_SIZE
+      };
       
       // write our query to the allocated memory
       Marshal.StructureToPtr(query, ptr, true);
@@ -327,7 +321,7 @@ namespace Google.Cloud.Storage
         lpBytesReturned: ref written,
         lpOverlapped: IntPtr.Zero);
 
-      T? identifyStruct = default;
+      T? result = default;
 
       if (ok)
       {
@@ -340,14 +334,14 @@ namespace Google.Cloud.Storage
           .ToInt32()
           + dataDescriptor.ProtocolSpecificData.ProtocolDataOffset;
 
-        identifyStruct = Marshal.PtrToStructure<T>(ptr + (int)identifyOffset);
+        result = Marshal.PtrToStructure<T>(ptr + (int)identifyOffset);
       }
       
       Marshal.FreeHGlobal(ptr);
       
       ThrowOnFailure(ok);
       
-      return identifyStruct!;
+      return result!;
     }
 
     private static SafeFileHandle OpenDrive(string physicalDrive)

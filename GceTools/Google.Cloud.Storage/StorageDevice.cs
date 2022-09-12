@@ -36,14 +36,12 @@ namespace Google.Cloud.Storage
 
     public readonly string Id;
     private readonly SafeFileHandle _hDevice;
-    private readonly bool _verbose;
     
     public string PhysicalDrive => PhysicalDrivePrefix + Id;
 
-    public StorageDevice(string id, bool verbose = false)
+    public StorageDevice(string id)
     {
       Id = id;
-      _verbose = verbose;
       _hDevice = OpenDrive(PhysicalDrive);
     }
 
@@ -52,13 +50,6 @@ namespace Google.Cloud.Storage
       _hDevice.Close();
     }
     
-    private void WriteDebugLine(string line)
-    {
-      if (_verbose)
-      {
-        Console.Error.WriteLine(line);
-      }
-    }
     private void ThrowOnFailure(bool ok)
     {
       if (!ok)
@@ -146,7 +137,7 @@ namespace Google.Cloud.Storage
         lpBytesReturned: ref written,
         lpOverlapped: IntPtr.Zero);
 
-      StorageDeviceIdDescriptor result = default;
+      StorageDeviceIdDescriptor? result = default;
 
       if (ok)
       {
@@ -161,7 +152,7 @@ namespace Google.Cloud.Storage
           buffer: ptr + identifiersOffset,
           numIdentifiers: storageDeviceIdDescriptor.NumberOfIdentifiers);
 
-        result = new StorageDeviceIdDescriptor()
+        result = new StorageDeviceIdDescriptor
         {
           Version = storageDeviceIdDescriptor.Version,
           Size = storageDeviceIdDescriptor.Size,
@@ -174,7 +165,7 @@ namespace Google.Cloud.Storage
       
       ThrowOnFailure(ok);
 
-      return result;
+      return result!;
     }
 
     public StorageIdentifier[] GetStorageIdentifiers(IntPtr buffer, uint numIdentifiers)

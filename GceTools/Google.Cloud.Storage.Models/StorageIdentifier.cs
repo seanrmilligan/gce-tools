@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.Windows.winioctl.h;
 
 namespace Google.Cloud.Storage.Models;
@@ -39,4 +40,17 @@ public class StorageIdentifier
     /// Contains the identifier associated with this descriptor.
     /// </summary>
     public byte[] Identifier { get; set; }
+
+    public override string ToString()
+    {
+        return string.Join(Environment.NewLine, new[]
+        {
+            $"CodeSet:               {CodeSet}",
+            $"Type:                  {Type}",
+            $"IdentifierSize:        {IdentifierSize}",
+            $"NextOffset:            {NextOffset}",
+            $"Association:           {Association}",
+            $"Identifier:            {Encoding.ASCII.GetString(Identifier)}"
+        });
+    }
 }

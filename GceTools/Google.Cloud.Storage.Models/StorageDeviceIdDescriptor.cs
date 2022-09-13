@@ -29,4 +29,17 @@ public class StorageDeviceIdDescriptor
     /// (STORAGE_IDENTIFIER).
     /// </summary>
     public StorageIdentifier[] Identifiers { get; set; }
+    
+    public override string ToString()
+    {
+        string indent = Environment.NewLine + "  ";
+        return string.Join(Environment.NewLine, new[]
+        {
+            $"Version:               {Version}",
+            $"Size:                  {Size}",
+            $"NumberOfIdentifiers:   {NumberOfIdentifiers}",
+            $"Identifiers:",
+            $"  {string.Join(indent, Identifiers.Select(id => id.ToString().Replace(Environment.NewLine, indent)).ToArray())}"
+        });
+    }
 }

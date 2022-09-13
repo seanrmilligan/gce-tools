@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Text;
 using CommandLine;
 using Google.Cloud.Storage.Extensions;
 using Microsoft.Windows.nvme.h;
@@ -80,7 +79,7 @@ namespace Google.Cloud.Storage
             {
               NVME_IDENTIFY_NAMESPACE_DATA data = device.NvmeIdentifySpecificNamespace(1);
               //int index = data.VS.IndexOf((byte)0x7B);
-              string json = Encoding.ASCII.GetString(data.VS.TakeWhile(b => b != 0).ToArray());
+              string json = data.VS.GetAsciiString(0);
               Console.WriteLine("NVME IDENTIFY:");
               Console.WriteLine(json);
               Console.WriteLine(data);

@@ -87,10 +87,23 @@ public class StorageDeviceDescriptor
   /// appended to this descriptor.
   /// </summary>
   public uint RawPropertiesLength;
-
-  /// <summary>
-  /// Contains an array of length one that serves as a place holder for
-  /// the first byte of the bus specific property data.
-  /// </summary>
-  public byte[] RawDeviceProperties;
+  
+  public override string ToString()
+  {
+    return string.Join("\n", new[]
+    {
+      $"Version:               {Version}",
+      $"Size:                  {Size}",
+      $"DeviceType:            {DeviceType}",
+      $"DeviceTypeModifier:    {DeviceTypeModifier}",
+      $"RemovableMedia:        {RemovableMedia}",
+      $"CommandQueueing:       {CommandQueueing}",
+      $"VendorId:              {VendorId}",
+      $"ProductId:             {ProductId}",
+      $"ProductRevision:       {ProductRevision}",
+      $"SerialNumber:          {SerialNumber}",
+      $"BusType:               {BusType}",
+      $"RawPropertiesLength:   {RawPropertiesLength}"
+    });
+  }
 }

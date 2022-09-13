@@ -1,10 +1,8 @@
-using Microsoft.Windows.winioctl.h;
-
-namespace Google.Cloud.Storage.ManagedModels;
+namespace Google.Cloud.Storage.Models;
 
 /// <summary>
 /// A managed (as opposed to native, unmanaged memory) wrapper of a
-/// <see cref="STORAGE_DEVICE_ID_DESCRIPTOR"/>.
+/// <see cref="Microsoft.Windows.winioctl.h.STORAGE_DEVICE_ID_DESCRIPTOR"/>.
 /// </summary>
 public class StorageDeviceIdDescriptor
 {

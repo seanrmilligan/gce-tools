@@ -3,7 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
-using Google.Cloud.Storage.ManagedModels;
+using Google.Cloud.Storage.Extensions;
+using Google.Cloud.Storage.Models;
 using Microsoft.Win32.SafeHandles;
 using Microsoft.Windows.fileapi.h;
 using Microsoft.Windows.nvme.h;
@@ -75,7 +76,7 @@ namespace Google.Cloud.Storage
         dwIoControlCode: IOCTL_STORAGE_QUERY_PROPERTY,
         lpInBuffer: ref query,
         nInBufferSize: (uint)Marshal.SizeOf(query),
-        lpOutBuffer: out result, 
+        lpOutBuffer: out result,
         nOutBufferSize: Marshal.SizeOf(result),
         lpBytesReturned: ref written,
         lpOverlapped: IntPtr.Zero);
@@ -84,48 +85,89 @@ namespace Google.Cloud.Storage
       return result;
     }
     
-    public STORAGE_DEVICE_DESCRIPTOR GetDeviceDescriptor()
+    public StorageDeviceDescriptor GetDeviceDescriptor()
     {
-      var query = new STORAGE_PROPERTY_QUERY
+      // determine an adequate buffer size
+      int bufferSize = 1024;
+      
+      // calloc some memory
+      IntPtr ptr = Marshal.AllocHGlobal(bufferSize);
+      Marshal.Copy(new byte[bufferSize], 0, ptr, bufferSize);
+      
+      // write our query to the allocated memory
+      Marshal.StructureToPtr(structure: new STORAGE_PROPERTY_QUERY
       {
         PropertyId = STORAGE_PROPERTY_ID.StorageDeviceProperty,
         QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
-      };
+      }, ptr: ptr, fDeleteOld: true);
       
-      var result = default(STORAGE_DEVICE_DESCRIPTOR);
+      // issue the query
       uint written = 0;
-      
       bool ok = DeviceIoControl(
         hDevice: _hDevice,
         dwIoControlCode: IOCTL_STORAGE_QUERY_PROPERTY,
-        lpInBuffer: ref query,
-        nInBufferSize: (uint)Marshal.SizeOf(query),
-        lpOutBuffer: out result, 
-        nOutBufferSize: Marshal.SizeOf(result),
+        lpInBuffer: ptr,
+        nInBufferSize: (uint)bufferSize,
+        lpOutBuffer: ptr,
+        nOutBufferSize: bufferSize,
         lpBytesReturned: ref written,
         lpOverlapped: IntPtr.Zero);
+
+      StorageDeviceDescriptor? result = default;
+      
+      if (ok)
+      {
+        STORAGE_DEVICE_DESCRIPTOR descriptor = Marshal
+          .PtrToStructure<STORAGE_DEVICE_DESCRIPTOR>(ptr);
+
+        byte[] buffer = new byte[descriptor.Size];
+        Marshal.Copy(
+          source: ptr,
+          destination: buffer,
+          startIndex: 0,
+          length: (int)descriptor.Size);
+        
+        result = new StorageDeviceDescriptor
+        {
+          Version = descriptor.Version,
+          Size = descriptor.Size,
+          DeviceType = descriptor.DeviceType,
+          DeviceTypeModifier = descriptor.DeviceTypeModifier,
+          RemovableMedia = descriptor.RemovableMedia,
+          CommandQueueing = descriptor.CommandQueueing,
+          VendorId = buffer.GetAsciiString(descriptor.VendorIdOffset),
+          ProductId = buffer.GetAsciiString(descriptor.ProductIdOffset),
+          ProductRevision = buffer.GetAsciiString(descriptor.ProductRevisionOffset),
+          SerialNumber = buffer.GetAsciiString(descriptor.SerialNumberOffset),
+          BusType = descriptor.BusType,
+          RawPropertiesLength = descriptor.RawPropertiesLength
+        };
+      }
+      
+      Marshal.FreeHGlobal(ptr);
+      
       ThrowOnFailure(ok);
       
-      
-      return result;
+      return result!;
     }
 
     public StorageDeviceIdDescriptor GetDeviceIdDescriptor()
     {
+      // determine an adequate buffer size
       int bufferSize = 1024;
       
+      // calloc some memory
       IntPtr ptr = Marshal.AllocHGlobal(bufferSize);
       Marshal.Copy(new byte[bufferSize], 0, ptr, bufferSize);
       
-      STORAGE_PROPERTY_QUERY query = new()
+      // write our query to the allocated memory
+      Marshal.StructureToPtr(new STORAGE_PROPERTY_QUERY
       {
         PropertyId = STORAGE_PROPERTY_ID.StorageDeviceIdProperty,
         QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
-      };
+      }, ptr, true);
       
-      // write our query to the allocated memory
-      Marshal.StructureToPtr(query, ptr, true);
-      
+      // issue the query
       uint written = 0;
       bool ok = DeviceIoControl(
         hDevice: _hDevice,
@@ -147,17 +189,15 @@ namespace Google.Cloud.Storage
         int identifiersOffset = Marshal
           .OffsetOf<STORAGE_DEVICE_ID_DESCRIPTOR>(nameof(STORAGE_DEVICE_ID_DESCRIPTOR.Identifiers))
           .ToInt32();
-
-        StorageIdentifier[] identifiers = GetStorageIdentifiers(
-          buffer: ptr + identifiersOffset,
-          numIdentifiers: storageDeviceIdDescriptor.NumberOfIdentifiers);
-
+        
         result = new StorageDeviceIdDescriptor
         {
           Version = storageDeviceIdDescriptor.Version,
           Size = storageDeviceIdDescriptor.Size,
           NumberOfIdentifiers = storageDeviceIdDescriptor.NumberOfIdentifiers,
-          Identifiers = identifiers
+          Identifiers = GetStorageIdentifiers(
+            buffer: ptr + identifiersOffset,
+            numIdentifiers: storageDeviceIdDescriptor.NumberOfIdentifiers)
         };
       }
       
@@ -209,7 +249,7 @@ namespace Google.Cloud.Storage
     
     public STORAGE_BUS_TYPE GetBusType()
     {
-      STORAGE_DEVICE_DESCRIPTOR descriptor = GetDeviceDescriptor();
+      StorageDeviceDescriptor descriptor = GetDeviceDescriptor();
       return descriptor.BusType;
     }
     

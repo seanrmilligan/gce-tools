@@ -1,6 +1,6 @@
 using Microsoft.Windows.winioctl.h;
 
-namespace Google.Cloud.Storage.ManagedModels;
+namespace Google.Cloud.Storage.Models;
 
 public class StorageIdentifier
 {
@@ -12,7 +12,7 @@ public class StorageIdentifier
         
     /// <summary>
     /// Contains an enumerator value of type
-    /// <see cref="STORAGE_IDENTIFIER_TYPE"/> that indicates the identifier
+    /// <see cref="Microsoft.Windows.winioctl.h.STORAGE_IDENTIFIER_TYPE"/> that indicates the identifier
     /// type.
     /// </summary>
     public STORAGE_IDENTIFIER_TYPE Type;
@@ -30,7 +30,7 @@ public class StorageIdentifier
         
     /// <summary>
     /// Contains an enumerator value of type
-    /// <see cref="STORAGE_ASSOCIATION_TYPE"/> that indicates whether the
+    /// <see cref="Microsoft.Windows.winioctl.h.STORAGE_ASSOCIATION_TYPE"/> that indicates whether the
     /// descriptor identifies a device or a port.
     /// </summary>
     public STORAGE_ASSOCIATION_TYPE Association;

@@ -64,7 +64,7 @@ namespace Google.Cloud.Storage
           }
 
           List<StorageDevice> devices = DeviceIds
-            .Select(deviceId => new StorageDevice(deviceId, Verbose))
+            .Select(deviceId => new StorageDevice(deviceId))
             .ToList();
 
           foreach (StorageDevice device in devices)

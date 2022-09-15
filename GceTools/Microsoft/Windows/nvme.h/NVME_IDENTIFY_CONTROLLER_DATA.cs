@@ -12,30 +12,75 @@ public readonly struct NVME_IDENTIFY_CONTROLLER_DATA
     //
     // byte 0 : 255, Controller Capabilities and Features
     //
-    [FieldOffset(0)]
-    public readonly USHORT VID;                // byte 0:1.    M - PCI Vendor ID (VID)
     
+    /// <summary>
+    /// PCI Vendor ID (VID)
+    /// </summary>
+    [FieldOffset(0)]
+    public readonly USHORT VID;
+    
+    /// <summary>
+    /// PCI Subsystem Vendor ID (SSVID)
+    /// </summary>
     [FieldOffset(2)]
-    public readonly USHORT SSVID;              // byte 2:3.    M - PCI Subsystem Vendor ID (SSVID)
+    public readonly USHORT SSVID;
     
     [FieldOffset(4)]
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
-    public readonly UCHAR[] SN;             // byte 4: 23.  M - Serial Number (SN)
+    private readonly byte _sn0;
     
+    [FieldOffset(5)]
+    private readonly byte _sn1;
+    
+    [FieldOffset(6)]
+    private readonly byte _sn2;
+    
+    [FieldOffset(7)]
+    private readonly byte _sn3;
+    
+    [FieldOffset(8)]
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
+    private readonly UCHAR[] _sn4;
+    
+    /// <summary>
+    /// Serial Number (SN)
+    /// </summary>
+    public UCHAR[] SN => new [] { _sn0, _sn1, _sn2, _sn3, }
+        .Concat(_sn4)
+        .ToArray();
+    
+    /// <summary>
+    /// Model Number (MN)
+    /// </summary>
     [FieldOffset(24)]
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 40)]
-    public readonly UCHAR[] MN;             // byte 24:63.  M - Model Number (MN)
+    public readonly UCHAR[] MN;
     
+    /// <summary>
+    /// Firmware Revision (FR)
+    /// </summary>
     [FieldOffset(64)]
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-    public readonly UCHAR[] FR;              // byte 64:71.  M - Firmware Revision (FR)
+    public readonly UCHAR[] FR;
     
+    /// <summary>
+    /// Recommended Arbitration Burst (RAB)
+    /// </summary>
     [FieldOffset(72)]
-    public readonly UCHAR RAB;                // byte 72.     M - Recommended Arbitration Burst (RAB)
-    
+    public readonly UCHAR RAB;
+
     [FieldOffset(73)]
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-    public readonly UCHAR[] IEEE;            // byte 73:75.  M - IEEE OUI Identifier (IEEE). Controller Vendor code.
+    private readonly byte _ieee0;
+    
+    [FieldOffset(74)]
+    private readonly byte _ieee1;
+    
+    [FieldOffset(75)]
+    private readonly byte _ieee2;
+    
+    /// <summary>
+    /// IEEE OUI Identifier (IEEE). Controller Vendor code.
+    /// </summary>
+    public readonly UCHAR[] IEEE => new []{ _ieee0, _ieee1, _ieee2 };
 
     [FieldOffset(76)]
     public readonly CMIC CMIC;                     // byte 76.     O - Controller Multi-Path I/O and Namespace Sharing Capabilities (CMIC)

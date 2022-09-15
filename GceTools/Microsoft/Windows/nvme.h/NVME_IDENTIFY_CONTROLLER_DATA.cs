@@ -6,7 +6,7 @@ using USHORT = System.UInt16;
 
 namespace Microsoft.Windows.nvme.h;
 
-[StructLayout(LayoutKind.Explicit)]
+[StructLayout(LayoutKind.Explicit, Size = 4096)]
 public readonly struct NVME_IDENTIFY_CONTROLLER_DATA
 {
     //
@@ -178,6 +178,7 @@ public readonly struct NVME_IDENTIFY_CONTROLLER_DATA
     [FieldOffset(528)]
     public readonly USHORT AWUPF;              // byte 528:529. M - Atomic Write Unit Power Fail (AWUPF)
 
+    [FieldOffset(530)]
     public readonly NVSCC NVSCC;                    // byte 530.     M - NVM Vendor Specific Command Configuration (NVSCC)
 
     // byte 531 is reserved

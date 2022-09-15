@@ -5,46 +5,65 @@ using USHORT = System.UInt16;
 
 namespace Microsoft.Windows.nvme.h;
 
-[StructLayout(LayoutKind.Explicit)]
+[StructLayout(LayoutKind.Explicit, Size = 32)]
 public readonly struct NVME_POWER_STATE_DESC
 {
     [FieldOffset(0)]
     public readonly USHORT MP;                 // bit 0:15.    Maximum  Power (MP)
 
-    UCHAR   Reserved0;          // bit 16:23
+    // byte 2 is reserved
 
-    UCHAR   MPS         : 1;    // bit 24: Max Power Scale (MPS)
-    UCHAR   NOPS        : 1;    // bit 25: Non-Operational State (NOPS)
-    UCHAR   Reserved1   : 6;    // bit 26:31
+    [FieldOffset(3)]
+    private readonly UCHAR _mps_nops;
+    public UCHAR MPS => (UCHAR)(_mps_nops & 0b1); // bit 24: Max Power Scale (MPS)
 
-    ULONG   ENLAT;              // bit 32:63.   Entry Latency (ENLAT)
-    ULONG   EXLAT;              // bit 64:95.   Exit Latency (EXLAT)
+    public UCHAR NOPS => (UCHAR)((_mps_nops >> 1) & 0b1); // bit 25: Non-Operational State (NOPS)
+    // the next six bits are reserved
 
-    UCHAR   RRT         : 5;    // bit 96:100.  Relative Read Throughput (RRT)
-    UCHAR   Reserved2   : 3;    // bit 101:103
+    [FieldOffset(4)]
+    public readonly ULONG ENLAT;              // bit 32:63.   Entry Latency (ENLAT)
+    
+    [FieldOffset(8)]
+    public readonly ULONG EXLAT;              // bit 64:95.   Exit Latency (EXLAT)
 
-    UCHAR   RRL         : 5;    // bit 104:108  Relative Read Latency (RRL)
-    UCHAR   Reserved3   : 3;    // bit 109:111
+    [FieldOffset(12)]
+    private readonly UCHAR _rrt;
+    public UCHAR RRT => (UCHAR)(_rrt & 0b11111);  // bit 96:100.  Relative Read Throughput (RRT)
+    // the next three bits are reserved
 
-    UCHAR   RWT         : 5;    // bit 112:116  Relative Write Throughput (RWT)
-    UCHAR   Reserved4   : 3;    // bit 117:119
+    [FieldOffset(13)]
+    private readonly UCHAR _rrl;
+    public UCHAR RRL => (UCHAR)(_rrl & 0b11111); // bit 104:108  Relative Read Latency (RRL)
+    // the next three bits are reserved
 
-    UCHAR   RWL         : 5;    // bit 120:124  Relative Write Latency (RWL)
-    UCHAR   Reserved5   : 3;    // bit 125:127
+    [FieldOffset(14)]
+    private readonly UCHAR _rwt;
+    public UCHAR RWT => (UCHAR)(_rwt & 0b11111); // bit 112:116  Relative Write Throughput (RWT)
+    // the next three bits are reserved
 
-    USHORT  IDLP;               // bit 128:143  Idle Power (IDLP)
+    [FieldOffset(15)]
+    private readonly UCHAR _rwl;
+    public UCHAR RWL => (UCHAR)(_rwl & 0b11111); // bit 120:124  Relative Write Latency (RWL)
+    // the next three bits are reserved
 
-    UCHAR   Reserved6   : 6;    // bit 144:149
-    UCHAR   IPS         : 2;    // bit 150:151  Idle Power Scale (IPS)
+    [FieldOffset(16)]
+    public readonly USHORT IDLP;               // bit 128:143  Idle Power (IDLP)
 
-    UCHAR   Reserved7;          // bit 152:159
+    [FieldOffset(18)]
+    private readonly UCHAR _ips;
+    // the next six bits are reserved
+    public UCHAR IPS => (UCHAR)((_ips >> 6) & 0b11); // bit 150:151  Idle Power Scale (IPS)
 
-    USHORT  ACTP;               // bit 160:175  Active Power (ACTP)
+    // byte 19 is reserved
 
-    UCHAR   APW         : 3;    // bit 176:178  Active Power Workload (APW)
-    UCHAR   Reserved8   : 3;    // bit 179:181
-    UCHAR   APS         : 2;    // bit 182:183  Active Power Scale (APS)
+    [FieldOffset(20)]
+    public readonly USHORT ACTP;               // bit 160:175  Active Power (ACTP)
 
-
-    UCHAR   Reserved9[9];       // bit 184:255.
+    [FieldOffset(22)]
+    private readonly UCHAR _apw_aps;
+    public UCHAR APW => (UCHAR)(_apw_aps & 0b111); // bit 176:178  Active Power Workload (APW)
+    // the next three bits are reserved
+    public UCHAR APS => (UCHAR)((_apw_aps >> 6) & 0b11); // bit 182:183  Active Power Scale (APS)
+    
+    // the nine most significant bytes are reserved
 }

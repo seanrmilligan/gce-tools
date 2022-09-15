@@ -293,14 +293,23 @@ namespace Google.Cloud.Storage
       return string.Empty;
     }
 
+    public NVME_IDENTIFY_CONTROLLER_DATA NvmeIdentifyController()
+    {
+      return NvmeIdentify<NVME_IDENTIFY_CONTROLLER_DATA>(
+        STORAGE_PROPERTY_ID.StorageAdapterProtocolSpecificProperty,
+        NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_CONTROLLER,
+        0);
+    }
+    
     public NVME_IDENTIFY_NAMESPACE_DATA NvmeIdentifySpecificNamespace(uint namespaceId)
     {
       return NvmeIdentify<NVME_IDENTIFY_NAMESPACE_DATA>(
+        STORAGE_PROPERTY_ID.StorageAdapterProtocolSpecificProperty,
         NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_SPECIFIC_NAMESPACE,
         namespaceId);
     }
 
-    public T NvmeIdentify<T>(NVME_IDENTIFY_CNS_CODES identifyCode, uint subValue)
+    public T NvmeIdentify<T>(STORAGE_PROPERTY_ID propertyId, NVME_IDENTIFY_CNS_CODES identifyCode, uint subValue)
     {
       // STORAGE_PROTOCOL_SPECIFIC_DATA forms the AdditionalParameters field of
       // the STORAGE_PROPERTY_QUERY, so we find where AdditionalParameters is in
@@ -324,7 +333,7 @@ namespace Google.Cloud.Storage
       
       STORAGE_PROPERTY_QUERY query = new()
       {
-        PropertyId = STORAGE_PROPERTY_ID.StorageAdapterProtocolSpecificProperty,
+        PropertyId = propertyId,
         QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
       };
       STORAGE_PROTOCOL_SPECIFIC_DATA protocolSpecificData = new()

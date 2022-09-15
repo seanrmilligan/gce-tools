@@ -20,8 +20,11 @@ namespace Google.Cloud.Storage
     [Option(longName: "bus-type")]
     public bool BusType { get; set; }
     
-    [Option(longName: "nvme-identify")]
-    public bool NvmeIdentify { get; set; }
+    [Option(longName: "nvme-identify-controller")]
+    public bool NvmeIdentifyController { get; set; }
+    
+    [Option(longName: "nvme-identify-namespace")]
+    public bool NvmeIdentifyNamespace { get; set; }
     
     [Option(longName: "storage-adapter-descriptor")]
     public bool StorageAdapterDescriptor { get; set; }
@@ -75,14 +78,22 @@ namespace Google.Cloud.Storage
               Console.WriteLine($"BusType: {device.GetBusType()}");
               Console.WriteLine();
             }
-            if (options.NvmeIdentify)
+            if (options.NvmeIdentifyController)
+            {
+              Console.WriteLine($"{nameof(NVME_IDENTIFY_CONTROLLER_DATA)}:");
+              NVME_IDENTIFY_CONTROLLER_DATA data = device.NvmeIdentifyController();
+              Console.WriteLine(data);
+              Console.WriteLine();
+            }
+            if (options.NvmeIdentifyNamespace)
             {
               NVME_IDENTIFY_NAMESPACE_DATA data = device.NvmeIdentifySpecificNamespace(1);
               //int index = data.VS.IndexOf((byte)0x7B);
               string json = data.VS.GetAsciiString(0);
-              Console.WriteLine("NVME IDENTIFY:");
+              Console.WriteLine($"{nameof(NVME_IDENTIFY_NAMESPACE_DATA)}:");
               Console.WriteLine(json);
               Console.WriteLine(data);
+              Console.WriteLine();
             }
             if (options.StorageAdapterDescriptor)
             {
@@ -100,6 +111,7 @@ namespace Google.Cloud.Storage
             {
               Console.WriteLine($"{nameof(STORAGE_DEVICE_ID_DESCRIPTOR)}:");
               Console.WriteLine(device.GetDeviceIdDescriptor());
+              Console.WriteLine();
             }
           }
         }

@@ -5,7 +5,6 @@ namespace Google.Cloud.Storage.Extensions
 {
     public static class StructExtensions
     {
-        private const int PageSize = 4096;
         private static char[] _hex = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
         
         /// <summary>
@@ -32,7 +31,6 @@ namespace Google.Cloud.Storage.Extensions
         public static string ToHexString<T>(this T strct) where T : struct
         {
             StringBuilder sb = new();
-            
             
             foreach (byte b in strct.ToBytes())
             {

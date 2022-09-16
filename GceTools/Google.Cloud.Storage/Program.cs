@@ -20,9 +20,12 @@ namespace Google.Cloud.Storage
     [Option(longName: "bus-type")]
     public bool BusType { get; set; }
     
+    [Option(longName: "nvme-identify-active-namespaces")]
+    public bool NvmeIdentifyActiveNamespaces { get; set; }
+    
     [Option(longName: "nvme-identify-controller")]
     public bool NvmeIdentifyController { get; set; }
-    
+
     [Option(longName: "nvme-identify-namespace")]
     public bool NvmeIdentifyNamespace { get; set; }
     
@@ -78,6 +81,13 @@ namespace Google.Cloud.Storage
               Console.WriteLine($"BusType: {device.GetBusType()}");
               Console.WriteLine();
             }
+
+            if (options.NvmeIdentifyActiveNamespaces)
+            {
+              Console.WriteLine($"{nameof(NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_ACTIVE_NAMESPACES)}:");
+              int[] data = device.NvmeIdentifyActiveNamespaces();
+              Console.WriteLine(string.Join(",", data));
+            }
             if (options.NvmeIdentifyController)
             {
               Console.WriteLine($"{nameof(NVME_IDENTIFY_CONTROLLER_DATA)}:");
@@ -88,8 +98,7 @@ namespace Google.Cloud.Storage
             if (options.NvmeIdentifyNamespace)
             {
               NVME_IDENTIFY_NAMESPACE_DATA data = device.NvmeIdentifySpecificNamespace(1);
-              //int index = data.VS.IndexOf((byte)0x7B);
-              string json = data.VS.GetAsciiString(0);
+              string json = data.VS.ToAsciiString(0);
               Console.WriteLine($"{nameof(NVME_IDENTIFY_NAMESPACE_DATA)}:");
               Console.WriteLine(json);
               Console.WriteLine(data);

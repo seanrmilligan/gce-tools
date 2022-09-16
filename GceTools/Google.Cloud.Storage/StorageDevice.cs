@@ -135,10 +135,10 @@ namespace Google.Cloud.Storage
           DeviceTypeModifier = descriptor.DeviceTypeModifier,
           RemovableMedia = descriptor.RemovableMedia,
           CommandQueueing = descriptor.CommandQueueing,
-          VendorId = buffer.GetAsciiString(descriptor.VendorIdOffset),
-          ProductId = buffer.GetAsciiString(descriptor.ProductIdOffset),
-          ProductRevision = buffer.GetAsciiString(descriptor.ProductRevisionOffset),
-          SerialNumber = buffer.GetAsciiString(descriptor.SerialNumberOffset),
+          VendorId = buffer.ToAsciiString(descriptor.VendorIdOffset),
+          ProductId = buffer.ToAsciiString(descriptor.ProductIdOffset),
+          ProductRevision = buffer.ToAsciiString(descriptor.ProductRevisionOffset),
+          SerialNumber = buffer.ToAsciiString(descriptor.SerialNumberOffset),
           BusType = descriptor.BusType,
           RawPropertiesLength = descriptor.RawPropertiesLength
         };
@@ -292,6 +292,17 @@ namespace Google.Cloud.Storage
           .ToArray());
       return string.Empty;
     }
+    
+    public int[] NvmeIdentifyActiveNamespaces()
+    {
+      Page page = NvmeIdentify<Page>(
+        STORAGE_PROPERTY_ID.StorageDeviceProtocolSpecificProperty,
+        NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_ACTIVE_NAMESPACES,
+        0);
+
+      Console.WriteLine(page.Bytes.ToHexString(separator: " "));
+      return page.Bytes.ToInt32Array();
+    }
 
     public NVME_IDENTIFY_CONTROLLER_DATA NvmeIdentifyController()
     {
@@ -328,7 +339,9 @@ namespace Google.Cloud.Storage
                        + Marshal.SizeOf(typeof(STORAGE_PROTOCOL_SPECIFIC_DATA))
                        + Constants.NVME_MAX_LOG_SIZE;
       
+      // Alloc then clear the buffer
       IntPtr ptr = Marshal.AllocHGlobal(bufferSize);
+      // Copying a new managed byte array into the buffer clears it
       Marshal.Copy(new byte[bufferSize], 0, ptr, bufferSize);
       
       STORAGE_PROPERTY_QUERY query = new()

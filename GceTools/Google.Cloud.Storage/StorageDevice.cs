@@ -135,10 +135,18 @@ namespace Google.Cloud.Storage
           DeviceTypeModifier = descriptor.DeviceTypeModifier,
           RemovableMedia = descriptor.RemovableMedia,
           CommandQueueing = descriptor.CommandQueueing,
-          VendorId = buffer.ToAsciiString(descriptor.VendorIdOffset),
-          ProductId = buffer.ToAsciiString(descriptor.ProductIdOffset),
-          ProductRevision = buffer.ToAsciiString(descriptor.ProductRevisionOffset),
-          SerialNumber = buffer.ToAsciiString(descriptor.SerialNumberOffset),
+          VendorId = descriptor.VendorIdOffset == 0 ?
+            string.Empty :
+            buffer.ToAsciiString(descriptor.VendorIdOffset),
+          ProductId = descriptor.ProductIdOffset == 0 ?
+            string.Empty :
+            buffer.ToAsciiString(descriptor.ProductIdOffset),
+          ProductRevision = descriptor.ProductRevisionOffset == 0 ?
+            string.Empty :
+            buffer.ToAsciiString(descriptor.ProductRevisionOffset),
+          SerialNumber = descriptor.SerialNumberOffset == 0 ?
+            string.Empty :
+            buffer.ToAsciiString(descriptor.SerialNumberOffset),
           BusType = descriptor.BusType,
           RawPropertiesLength = descriptor.RawPropertiesLength
         };

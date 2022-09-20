@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Text.Json;
 using CommandLine;
 using Google.Cloud.Storage.Extensions;
 using Microsoft.Windows.nvme.h;
@@ -51,6 +52,70 @@ namespace Google.Cloud.Storage
       {
         Verbose = options.Verbose;
         DeviceIds = options.DeviceIds.ToList();
+        
+        if (options.NvmeIdentifyActiveNamespaces)
+        {
+          if (DeviceIds.None())
+          {
+            WriteDebugLine("No device IDs specified. Retrieving list of physical devices.");
+
+            // List all physical drives if none specified.
+            DeviceIds = StorageDevice.GetAllPhysicalDeviceIds().ToList();
+
+            if (DeviceIds.None())
+            {
+              WriteDebugLine("No physical devices were found.");
+              return;
+            }
+          }
+          List<StorageDevice> devices = DeviceIds
+            .Select(deviceId => new StorageDevice(deviceId))
+            .ToList();
+          Console.WriteLine($"{nameof(NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_ACTIVE_NAMESPACES)}:");
+
+          var namespacesByController = devices
+            .GroupBy(device => device.NvmeIdentifyController().SN.ToAsciiString(0))
+            .ToDictionary(group => group.Key,
+              group => Enumerable.Range(1, 1024)
+                  .Select(namespaceId =>
+                  {
+                    try
+                    {
+                      return group.First()
+                        .NvmeIdentifySpecificNamespace((uint)namespaceId)
+                        .VS
+                        .ToAsciiString(0);
+                    }
+                    catch (Win32Exception e)
+                    {
+                      switch (e.NativeErrorCode)
+                      {
+                        case 0x1: // ERROR_INVALID_FUNCTION
+                          // Occurs when you send an invalid namespace value like 0.
+                          WriteDebugLine("Invalid namespace number.");
+                          return string.Empty;
+                          break;
+                        case 0x45D: // ERROR_IO_DEVICE
+                          // Occurs when the namespace requested does not exist.
+                          WriteDebugLine($"Ignoring non-existent namespace {namespaceId}.");
+                          return string.Empty;
+                          break;
+                        default:
+                          // A new exception and we don't know why! How exciting.
+                          throw;
+                      }
+                    }
+                  })
+                  .Where(jsonString => !string.IsNullOrEmpty(jsonString))
+                  .Select(jsonString => JsonSerializer.Deserialize<NamespaceIdMetadata>(jsonString)));
+
+          foreach (KeyValuePair<string,IEnumerable<NamespaceIdMetadata?>> namespaces in namespacesByController)
+          {
+            Console.WriteLine(namespaces.Key);
+            Console.WriteLine(string.Join(Environment.NewLine, namespaces.Value));
+          }
+          return;
+        }
 
         try
         {
@@ -75,19 +140,13 @@ namespace Google.Cloud.Storage
           foreach (StorageDevice device in devices)
           {
             Console.WriteLine($"Physical Drive: {device.PhysicalDrive}");
-            
+
             if (options.BusType)
             {
               Console.WriteLine($"BusType: {device.GetBusType()}");
               Console.WriteLine();
             }
 
-            if (options.NvmeIdentifyActiveNamespaces)
-            {
-              Console.WriteLine($"{nameof(NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_ACTIVE_NAMESPACES)}:");
-              int[] data = device.NvmeIdentifyActiveNamespaces();
-              Console.WriteLine(string.Join(",", data));
-            }
             if (options.NvmeIdentifyController)
             {
               Console.WriteLine($"{nameof(NVME_IDENTIFY_CONTROLLER_DATA)}:");

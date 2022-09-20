@@ -300,7 +300,7 @@ namespace Google.Cloud.Storage
           .ToArray());
       return string.Empty;
     }
-    
+
     public int[] NvmeIdentifyActiveNamespaces()
     {
       Page page = NvmeIdentify<Page>(

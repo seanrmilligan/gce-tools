@@ -6,6 +6,11 @@ namespace Google.Cloud.Storage.Extensions
     public static class StructExtensions
     {
         private static char[] _hex = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
+        public static string ToAsciiString<T>(this T strct) where T : struct
+        {
+            return Encoding.ASCII.GetString(strct.ToBytes());
+        }
         
         /// <summary>
         /// 

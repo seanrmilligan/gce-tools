@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Cloud.Storage.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft", "Microsoft\Microsoft.csproj", "{B1FB0E67-56B4-40D7-A7BB-3F5BDAC0C01B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Cloud.Storage.Models", "Google.Cloud.Storage.Models\Google.Cloud.Storage.Models.csproj", "{FF413A62-3AA9-44F3-BEED-40EB9E42F261}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +27,6 @@ Global
 		{B1FB0E67-56B4-40D7-A7BB-3F5BDAC0C01B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1FB0E67-56B4-40D7-A7BB-3F5BDAC0C01B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1FB0E67-56B4-40D7-A7BB-3F5BDAC0C01B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FF413A62-3AA9-44F3-BEED-40EB9E42F261}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FF413A62-3AA9-44F3-BEED-40EB9E42F261}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FF413A62-3AA9-44F3-BEED-40EB9E42F261}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FF413A62-3AA9-44F3-BEED-40EB9E42F261}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

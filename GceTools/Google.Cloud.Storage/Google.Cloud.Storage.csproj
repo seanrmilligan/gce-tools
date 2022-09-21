@@ -14,7 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Google.Cloud.Storage.Models\Google.Cloud.Storage.Models.csproj" />
     <ProjectReference Include="..\Microsoft\Microsoft.csproj" />
   </ItemGroup>
 

@@ -30,14 +30,9 @@ namespace Google.Cloud.Storage
   #region GetGcePdNameCommand
 
   // https://docs.microsoft.com/en-us/powershell/developer/cmdlet/cmdlet-class-declaration
-  [Cmdlet(VerbsCommon.Get, "GcePdName")]
-  public class GetGcePdNameCommand : Cmdlet
+  [Cmdlet(VerbsCommon.Get, "GoogleDiskName")]
+  public class GetGoogleDiskNameCommand : Cmdlet
   {
-    // Best resource for developing a cmdlet in C#:
-    //   https://docs.microsoft.com/en-us/powershell/developer/cmdlet/tutorials-for-writing-cmdlets.
-    // Going through the examples in order until you've learned everything you
-    // need to know is recommended.
-
     #region Parameters
     /// <summary>
     /// List of physical disk numbers.

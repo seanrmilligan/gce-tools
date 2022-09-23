@@ -46,29 +46,9 @@ namespace Google.Cloud.Storage
       }
     }
 
-    public STORAGE_ADAPTER_DESCRIPTOR GetAdapterDescriptor()
+    public STORAGE_ADAPTER_DESCRIPTOR GetStorageAdapterDescriptor()
     {
-      STORAGE_PROPERTY_QUERY query = new()
-      {
-        PropertyId = STORAGE_PROPERTY_ID.StorageAdapterProperty,
-        QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
-      };
-      
-      var result = default(STORAGE_ADAPTER_DESCRIPTOR);
-      uint written = 0;
-      
-      bool ok = IOApiSet.DeviceIoControl(
-        hDevice: _hDevice,
-        dwIoControlCode: IOCTL_STORAGE_QUERY_PROPERTY,
-        lpInBuffer: ref query,
-        nInBufferSize: (uint)Marshal.SizeOf(query),
-        lpOutBuffer: out result,
-        nOutBufferSize: Marshal.SizeOf(result),
-        lpBytesReturned: ref written,
-        lpOverlapped: IntPtr.Zero);
-      ThrowOnFailure(ok);
-      
-      return result;
+      return IssueIoctl<STORAGE_ADAPTER_DESCRIPTOR>(STORAGE_PROPERTY_ID.StorageAdapterProperty);
     }
     
     public StorageDeviceDescriptor GetDeviceDescriptor()
@@ -143,6 +123,49 @@ namespace Google.Cloud.Storage
       ThrowOnFailure(ok);
       
       return result!;
+    }
+
+    public StorageDeviceDescriptor GetStorageDeviceDescriptor()
+    {
+      return IssueIoctl(
+        STORAGE_PROPERTY_ID.StorageDeviceProperty,
+        bufferSize: 1024,
+        marshaller: buffer =>
+        {
+          STORAGE_DEVICE_DESCRIPTOR descriptor = Marshal
+            .PtrToStructure<STORAGE_DEVICE_DESCRIPTOR>(buffer);
+
+          byte[] structBytes = new byte[descriptor.Size];
+          Marshal.Copy(
+            source: buffer,
+            destination: structBytes,
+            startIndex: 0,
+            length: (int)descriptor.Size);
+        
+          return new StorageDeviceDescriptor
+          {
+            Version = descriptor.Version,
+            Size = descriptor.Size,
+            DeviceType = descriptor.DeviceType,
+            DeviceTypeModifier = descriptor.DeviceTypeModifier,
+            RemovableMedia = descriptor.RemovableMedia,
+            CommandQueueing = descriptor.CommandQueueing,
+            VendorId = descriptor.VendorIdOffset == 0 ?
+              string.Empty :
+              structBytes.ToAsciiString(descriptor.VendorIdOffset),
+            ProductId = descriptor.ProductIdOffset == 0 ?
+              string.Empty :
+              structBytes.ToAsciiString(descriptor.ProductIdOffset),
+            ProductRevision = descriptor.ProductRevisionOffset == 0 ?
+              string.Empty :
+              structBytes.ToAsciiString(descriptor.ProductRevisionOffset),
+            SerialNumber = descriptor.SerialNumberOffset == 0 ?
+              string.Empty :
+              structBytes.ToAsciiString(descriptor.SerialNumberOffset),
+            BusType = descriptor.BusType,
+            RawPropertiesLength = descriptor.RawPropertiesLength
+          };
+        });
     }
 
     public StorageDeviceIdDescriptor GetDeviceIdDescriptor()
@@ -351,6 +374,77 @@ namespace Google.Cloud.Storage
       return result!;
     }
 
+    private TResult IssueIoctl<TResult>(
+      STORAGE_PROPERTY_ID propertyId,
+      int bufferSize = 0,
+      Func<IntPtr, TResult>? marshaller = null
+    )
+    {
+      return IssueIoctl<TResult, byte>(
+        propertyId, default, bufferSize, marshaller);
+    }
+    
+    private TResult IssueIoctl<TResult, TAdditionalParameters>(
+      STORAGE_PROPERTY_ID propertyId,
+      TAdditionalParameters? additionalParameters = default,
+      int bufferSize = 0,
+      Func<IntPtr, TResult>? marshaller = null
+    ) where TAdditionalParameters : struct
+    {
+      if (bufferSize == 0)
+      {
+        bufferSize = Math.Max(
+          Marshal.SizeOf(typeof(STORAGE_PROPERTY_QUERY)),
+          Marshal.SizeOf(typeof(TResult)));
+      }
+      
+      IntPtr buffer = Marshal.AllocHGlobal(bufferSize);
+      Marshal.Copy(new byte[bufferSize], 0, buffer, bufferSize);
+      
+      Marshal.StructureToPtr(structure: new STORAGE_PROPERTY_QUERY
+      {
+        PropertyId = propertyId,
+        QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
+      }, ptr: buffer, fDeleteOld: true);
+      
+      if (!object.Equals(additionalParameters, default))
+      {
+        // STORAGE_PROTOCOL_SPECIFIC_DATA forms the AdditionalParameters field of
+        // the STORAGE_PROPERTY_QUERY, so we find where AdditionalParameters is in
+        // order to write protocolSpecificData to memory at that address.
+        int additionalParametersOffset = Marshal
+          .OffsetOf<STORAGE_PROPERTY_QUERY>(
+            nameof(STORAGE_PROPERTY_QUERY.AdditionalParameters))
+          .ToInt32();
+        Marshal.StructureToPtr(structure: additionalParameters,
+          ptr: buffer + additionalParametersOffset, fDeleteOld: true);
+      }
+      
+      uint written = 0;
+      bool ok = IOApiSet.DeviceIoControl(
+        hDevice: _hDevice,
+        dwIoControlCode: IOCTL_STORAGE_QUERY_PROPERTY,
+        lpInBuffer: buffer,
+        nInBufferSize: (uint)bufferSize,
+        lpOutBuffer: buffer,
+        nOutBufferSize: bufferSize,
+        lpBytesReturned: ref written,
+        lpOverlapped: IntPtr.Zero);
+
+      if (!ok)
+      {
+        Marshal.FreeHGlobal(buffer);
+        throw new Win32Exception(Marshal.GetLastWin32Error());
+      }
+      
+      TResult result = marshaller != null ?
+        marshaller.Invoke(buffer) :
+        Marshal.PtrToStructure<TResult>(buffer)!;
+        
+      Marshal.FreeHGlobal(buffer);
+      return result;
+    }
+    
     private static SafeFileHandle OpenDrive(string physicalDrive)
     {
       SafeFileHandle hDevice = FileApi.CreateFile(physicalDrive,

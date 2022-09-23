@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Cloud.Storage.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft", "Microsoft\Microsoft.csproj", "{B1FB0E67-56B4-40D7-A7BB-3F5BDAC0C01B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NVMe", "NVMe\NVMe.csproj", "{7FD10665-D3DF-40A7-A914-5CE21CFC2625}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{B1FB0E67-56B4-40D7-A7BB-3F5BDAC0C01B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1FB0E67-56B4-40D7-A7BB-3F5BDAC0C01B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1FB0E67-56B4-40D7-A7BB-3F5BDAC0C01B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FD10665-D3DF-40A7-A914-5CE21CFC2625}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FD10665-D3DF-40A7-A914-5CE21CFC2625}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FD10665-D3DF-40A7-A914-5CE21CFC2625}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FD10665-D3DF-40A7-A914-5CE21CFC2625}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

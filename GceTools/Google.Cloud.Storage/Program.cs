@@ -17,6 +17,13 @@ namespace Google.Cloud.Storage
         Verbose = options.Verbose;
         IEnumerable<GoogleStorageDevice> devices = GetAllDevices(options.DeviceIds);
 
+        if (options.StorageAdapterDescriptor)
+        {
+          Console.WriteLine(string.Join(Environment.NewLine,
+            devices.Select(d => d.GetStorageDeviceDescriptor())));
+          return;
+        }
+        
         IEnumerable<string> names = devices.Select(device => device.GetDeviceName());
         
         Console.WriteLine(string.Join(Environment.NewLine, names));

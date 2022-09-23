@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Google.Cloud.Storage.Extensions;
 
@@ -109,5 +110,19 @@ public static class ByteArrayExtensions
         }
 
         return result;
+    }
+
+    public static T ToStruct<T>(this byte[] array)
+    {
+        int bufferSize = Marshal.SizeOf(typeof(T));
+        IntPtr buffer = Marshal.AllocHGlobal(bufferSize);
+        
+        Marshal.Copy(
+            source: array,
+            startIndex: 0,
+            destination: buffer,
+            length: bufferSize);
+
+        return Marshal.PtrToStructure<T>(buffer)!;
     }
 }

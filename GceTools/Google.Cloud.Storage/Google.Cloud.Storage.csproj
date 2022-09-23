@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft\Microsoft.csproj" />
+    <ProjectReference Include="..\NVMe\NVMe.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,8 +1,11 @@
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using Google.Cloud.Storage.Extensions;
 using Google.Cloud.Storage.Models;
+using Microsoft.Native.nvme.h;
 using Microsoft.Native.winioctl.h;
+using NVMe;
 
 namespace Google.Cloud.Storage;
 
@@ -31,15 +34,20 @@ public class GoogleStorageDevice : StorageDevice
 
     public uint GetNvmeNamespaceId()
     {
-        StorageDeviceIdDescriptor deviceIdDescriptor = GetDeviceIdDescriptor();
-        return uint.Parse(deviceIdDescriptor
+        NVME_IDENTIFY_CONTROLLER_DATA controller = NvmeIdentifyController();
+        byte[] identifier = GetDeviceIdDescriptor()
             .Identifiers
             .First()
-            .Identifier
-            .Skip(44)
-            .Take(4)
-            .ToArray()
-            .ToAsciiString(0));
+            .Identifier;
+        ScsiNameString nameString = identifier.ToStruct<ScsiNameString>();
+        
+        return controller.VER switch
+        {
+            (uint)NvmeVersion.Version_1_0 => uint.Parse(nameString.NamespaceId.ToAsciiString(0)),
+            > (uint)NvmeVersion.Version_1_0 => 1234,
+            _ => throw new NotSupportedException(
+                message: $"NVMe versions prior to v1.0 are not supported by this application. {PhysicalDrive} reported NVMe Version {controller.VER}.")
+        };
     }
 
     public string GetNvmeDeviceName()

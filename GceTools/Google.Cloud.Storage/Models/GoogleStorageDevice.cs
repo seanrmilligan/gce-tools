@@ -34,17 +34,41 @@ public class GoogleStorageDevice : StorageDevice
     public uint GetNvmeNamespaceId()
     {
         NVME_IDENTIFY_CONTROLLER_DATA controller = NvmeIdentifyController();
-        byte[] identifier = GetDeviceIdDescriptor()
-            .Identifiers
-            .First()
-            .Identifier;
-        NvmeV1BasedScsiNameString nameString =
-            identifier.ToStruct<NvmeV1BasedScsiNameString>();
         
         return controller.VER switch
         {
-            (uint)NvmeVersion.Version_1_0 => uint.Parse(nameString.NamespaceId.ToAsciiString(0)),
-            > (uint)NvmeVersion.Version_1_0 => 1234,
+            (uint)NvmeVersion.Version_1_0 => uint.Parse(GetDeviceIdDescriptor()
+                .Identifiers
+                .First()
+                .Identifier
+                .ToStruct<NvmeV1BasedScsiNameString>()
+                .NamespaceId
+                .ToAsciiString(0)),
+            
+            // On Windows Builds 1903 or later, we would expect this to NOT be
+            // an NvmeV1BasedScsiNameString when the NvmeVersion is greater than
+            // 1.0 due to StorNVMe on 1903 or later complying with SCSI-NVMe
+            // Translation Layer (SNTL) Reference Revision 1.5. However, for
+            // builds prior to 1903 we are observing a return value with the
+            // shape of an NvmeV1BasedScsiNameString.
+            //
+            // No documentation on StorNVMe behavior on builds prior to 1903
+            // have been found and behavior has been detected experimentally.
+            //
+            // For Windows Builds 1903 or later this will need to be expanded to
+            // detect and support other identifier types in SNTL Ref. Rev. 1.5,
+            // including:
+            // - 6.1.4.1 NAA IEEE Registered Extended designator format
+            // - 6.1.4.3 T10 Vendor ID based designator format
+            // - 6.1.4.5 EUI-64 designator format
+            > (uint)NvmeVersion.Version_1_0 => uint.Parse(GetDeviceIdDescriptor()
+                .Identifiers
+                .First()
+                .Identifier
+                .ToStruct<NvmeV1BasedScsiNameString>()
+                .NamespaceId
+                .ToAsciiString(0)),
+            
             _ => throw new NotSupportedException(
                 message: $"NVMe versions prior to v1.0 are not supported by this application. {PhysicalDrive} reported NVMe Version {controller.VER}.")
         };

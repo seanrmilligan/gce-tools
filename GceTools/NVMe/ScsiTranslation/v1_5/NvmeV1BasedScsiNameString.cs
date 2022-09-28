@@ -8,30 +8,43 @@ namespace NVMe.ScsiTranslation.v1_5;
 /// Section 6.1.4.4.1.3
 /// </summary>
 [StructLayout(LayoutKind.Explicit, Size = 68)]
-public struct NvmeV1BasedScsiNameString
+public readonly struct NvmeV1BasedScsiNameString
 {
+    [FieldOffset(0)]
+    private readonly byte _vid0;
+    
+    [FieldOffset(1)]
+    private readonly byte _vid1;
+    
+    [FieldOffset(2)]
+    private readonly byte _vid2;
+    
+    [FieldOffset(3)]
+    private readonly byte _vid3;
+
     /// <summary>
     /// PCI Vendor ID (UTF-8 representation)
     /// </summary>
     /// <remarks>
     /// bytes 01:00 of Identify Controller converted to 4 UTF-8 characters
     /// </remarks>
-    [FieldOffset(0)]
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-    public byte[] PCIVendorId;
+    public byte[] PciVendorId => new[] { _vid0, _vid1, _vid2, _vid3 };
 
     [FieldOffset(4)]
-    private byte _mn0;
+    private readonly byte _mn0;
+    
     [FieldOffset(5)]
-    private byte _mn1;
+    private readonly byte _mn1;
+    
     [FieldOffset(6)]
-    private byte _mn2;
+    private readonly byte _mn2;
+    
     [FieldOffset(7)]
-    private byte _mn3;
+    private readonly byte _mn3;
     
     [FieldOffset(8)]
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 36)]
-    private byte[] _mn4;
+    private readonly byte[] _mn4;
     
     /// <summary>
     /// Model Number
@@ -44,13 +57,16 @@ public struct NvmeV1BasedScsiNameString
         .ToArray();
 
     [FieldOffset(44)]
-    private byte _nsid0;
+    private readonly byte _nsid0;
+    
     [FieldOffset(45)]
-    private byte _nsid1;
+    private readonly byte _nsid1;
+    
     [FieldOffset(46)]
-    private byte _nsid2;
+    private readonly byte _nsid2;
+    
     [FieldOffset(47)]
-    private byte _nsid3;
+    private readonly byte _nsid3;
 
     /// <summary>
     /// Namespace ID (UTF-8 representation)
@@ -65,5 +81,5 @@ public struct NvmeV1BasedScsiNameString
     /// </remarks>
     [FieldOffset(48)]
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
-    public byte[] SerialNumber;
+    public readonly byte[] SerialNumber;
 }

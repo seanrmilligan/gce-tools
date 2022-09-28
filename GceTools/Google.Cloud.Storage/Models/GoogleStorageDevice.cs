@@ -1,11 +1,10 @@
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using Google.Cloud.Storage.Extensions;
 using Google.Cloud.Storage.Models;
 using Microsoft.Native.nvme.h;
 using Microsoft.Native.winioctl.h;
-using NVMe;
+using NVMe.ScsiTranslation.v1_5;
 
 namespace Google.Cloud.Storage;
 
@@ -39,7 +38,8 @@ public class GoogleStorageDevice : StorageDevice
             .Identifiers
             .First()
             .Identifier;
-        ScsiNameString nameString = identifier.ToStruct<ScsiNameString>();
+        NvmeV1BasedScsiNameString nameString =
+            identifier.ToStruct<NvmeV1BasedScsiNameString>();
         
         return controller.VER switch
         {

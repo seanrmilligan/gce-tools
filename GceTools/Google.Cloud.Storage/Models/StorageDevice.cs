@@ -51,80 +51,6 @@ namespace Google.Cloud.Storage
       return IssueIoctl<STORAGE_ADAPTER_DESCRIPTOR>(STORAGE_PROPERTY_ID.StorageAdapterProperty);
     }
     
-    public StorageDeviceDescriptor GetDeviceDescriptor()
-    {
-      // determine an adequate buffer size
-      int bufferSize = 1024;
-      
-      // calloc some memory
-      IntPtr ptr = Marshal.AllocHGlobal(bufferSize);
-      Marshal.Copy(new byte[bufferSize], 0, ptr, bufferSize);
-      
-      // write our query to the allocated memory
-      Marshal.StructureToPtr(structure: new STORAGE_PROPERTY_QUERY
-      {
-        PropertyId = STORAGE_PROPERTY_ID.StorageDeviceProperty,
-        QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
-      }, ptr: ptr, fDeleteOld: true);
-      
-      // issue the query
-      uint written = 0;
-      bool ok = IOApiSet.DeviceIoControl(
-        hDevice: _hDevice,
-        dwIoControlCode: IOCTL_STORAGE_QUERY_PROPERTY,
-        lpInBuffer: ptr,
-        nInBufferSize: (uint)bufferSize,
-        lpOutBuffer: ptr,
-        nOutBufferSize: bufferSize,
-        lpBytesReturned: ref written,
-        lpOverlapped: IntPtr.Zero);
-
-      StorageDeviceDescriptor? result = default;
-      
-      if (ok)
-      {
-        STORAGE_DEVICE_DESCRIPTOR descriptor = Marshal
-          .PtrToStructure<STORAGE_DEVICE_DESCRIPTOR>(ptr);
-
-        byte[] buffer = new byte[descriptor.Size];
-        Marshal.Copy(
-          source: ptr,
-          destination: buffer,
-          startIndex: 0,
-          length: (int)descriptor.Size);
-        
-        result = new StorageDeviceDescriptor
-        {
-          Version = descriptor.Version,
-          Size = descriptor.Size,
-          DeviceType = descriptor.DeviceType,
-          DeviceTypeModifier = descriptor.DeviceTypeModifier,
-          RemovableMedia = descriptor.RemovableMedia,
-          CommandQueueing = descriptor.CommandQueueing,
-          VendorId = descriptor.VendorIdOffset == 0 ?
-            string.Empty :
-            buffer.ToAsciiString(descriptor.VendorIdOffset),
-          ProductId = descriptor.ProductIdOffset == 0 ?
-            string.Empty :
-            buffer.ToAsciiString(descriptor.ProductIdOffset),
-          ProductRevision = descriptor.ProductRevisionOffset == 0 ?
-            string.Empty :
-            buffer.ToAsciiString(descriptor.ProductRevisionOffset),
-          SerialNumber = descriptor.SerialNumberOffset == 0 ?
-            string.Empty :
-            buffer.ToAsciiString(descriptor.SerialNumberOffset),
-          BusType = descriptor.BusType,
-          RawPropertiesLength = descriptor.RawPropertiesLength
-        };
-      }
-      
-      Marshal.FreeHGlobal(ptr);
-      
-      ThrowOnFailure(ok);
-      
-      return result!;
-    }
-
     public StorageDeviceDescriptor GetStorageDeviceDescriptor()
     {
       return IssueIoctl(
@@ -266,7 +192,7 @@ namespace Google.Cloud.Storage
     
     public STORAGE_BUS_TYPE GetBusType()
     {
-      StorageDeviceDescriptor descriptor = GetDeviceDescriptor();
+      StorageDeviceDescriptor descriptor = GetStorageDeviceDescriptor();
       return descriptor.BusType;
     }
 

@@ -94,61 +94,30 @@ namespace Google.Cloud.Storage
         });
     }
 
-    public StorageDeviceIdDescriptor GetDeviceIdDescriptor()
+    public StorageDeviceIdDescriptor GetStorageDeviceIdDescriptor()
     {
-      // determine an adequate buffer size
-      int bufferSize = 1024;
-      
-      // calloc some memory
-      IntPtr ptr = Marshal.AllocHGlobal(bufferSize);
-      Marshal.Copy(new byte[bufferSize], 0, ptr, bufferSize);
-      
-      // write our query to the allocated memory
-      Marshal.StructureToPtr(new STORAGE_PROPERTY_QUERY
-      {
-        PropertyId = STORAGE_PROPERTY_ID.StorageDeviceIdProperty,
-        QueryType = STORAGE_QUERY_TYPE.PropertyStandardQuery
-      }, ptr, true);
-      
-      // issue the query
-      uint written = 0;
-      bool ok = IOApiSet.DeviceIoControl(
-        hDevice: _hDevice,
-        dwIoControlCode: IOCTL_STORAGE_QUERY_PROPERTY,
-        lpInBuffer: ptr,
-        nInBufferSize: (uint)bufferSize,
-        lpOutBuffer: ptr,
-        nOutBufferSize: bufferSize,
-        lpBytesReturned: ref written,
-        lpOverlapped: IntPtr.Zero);
-
-      StorageDeviceIdDescriptor? result = default;
-
-      if (ok)
-      {
-        STORAGE_DEVICE_ID_DESCRIPTOR storageDeviceIdDescriptor = Marshal
-          .PtrToStructure<STORAGE_DEVICE_ID_DESCRIPTOR>(ptr);
-        
-        int identifiersOffset = Marshal
-          .OffsetOf<STORAGE_DEVICE_ID_DESCRIPTOR>(nameof(STORAGE_DEVICE_ID_DESCRIPTOR.Identifiers))
-          .ToInt32();
-        
-        result = new StorageDeviceIdDescriptor
+      return IssueIoctl(
+        STORAGE_PROPERTY_ID.StorageDeviceIdProperty,
+        bufferSize: 1024,
+        marshaller: buffer =>
         {
-          Version = storageDeviceIdDescriptor.Version,
-          Size = storageDeviceIdDescriptor.Size,
-          NumberOfIdentifiers = storageDeviceIdDescriptor.NumberOfIdentifiers,
-          Identifiers = GetStorageIdentifiers(
-            buffer: ptr + identifiersOffset,
-            numIdentifiers: storageDeviceIdDescriptor.NumberOfIdentifiers)
-        };
-      }
-      
-      Marshal.FreeHGlobal(ptr);
-      
-      ThrowOnFailure(ok);
+          STORAGE_DEVICE_ID_DESCRIPTOR storageDeviceIdDescriptor = Marshal
+            .PtrToStructure<STORAGE_DEVICE_ID_DESCRIPTOR>(buffer);
 
-      return result!;
+          int identifiersOffset = Marshal
+            .OffsetOf<STORAGE_DEVICE_ID_DESCRIPTOR>(nameof(STORAGE_DEVICE_ID_DESCRIPTOR.Identifiers))
+            .ToInt32();
+
+          return new StorageDeviceIdDescriptor
+          {
+            Version = storageDeviceIdDescriptor.Version,
+            Size = storageDeviceIdDescriptor.Size,
+            NumberOfIdentifiers = storageDeviceIdDescriptor.NumberOfIdentifiers,
+            Identifiers = GetStorageIdentifiers(
+              buffer: buffer + identifiersOffset,
+              numIdentifiers: storageDeviceIdDescriptor.NumberOfIdentifiers)
+          };
+        });
     }
 
     public StorageIdentifier[] GetStorageIdentifiers(IntPtr buffer, uint numIdentifiers)

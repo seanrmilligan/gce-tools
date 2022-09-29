@@ -37,7 +37,7 @@ public class GoogleStorageDevice : StorageDevice
         
         return controller.VER switch
         {
-            (uint)NvmeVersion.Version_1_0 => uint.Parse(GetDeviceIdDescriptor()
+            (uint)NvmeVersion.Version_1_0 => uint.Parse(GetStorageDeviceIdDescriptor()
                 .Identifiers
                 .First()
                 .Identifier
@@ -61,7 +61,7 @@ public class GoogleStorageDevice : StorageDevice
             // - 6.1.4.1 NAA IEEE Registered Extended designator format
             // - 6.1.4.3 T10 Vendor ID based designator format
             // - 6.1.4.5 EUI-64 designator format
-            > (uint)NvmeVersion.Version_1_0 => uint.Parse(GetDeviceIdDescriptor()
+            > (uint)NvmeVersion.Version_1_0 => uint.Parse(GetStorageDeviceIdDescriptor()
                 .Identifiers
                 .First()
                 .Identifier
@@ -81,7 +81,7 @@ public class GoogleStorageDevice : StorageDevice
     
     public string GetScsiDeviceName()
     {
-        StorageDeviceIdDescriptor deviceIdDescriptor = GetDeviceIdDescriptor();
+        StorageDeviceIdDescriptor deviceIdDescriptor = GetStorageDeviceIdDescriptor();
 
         string persistentDiskName = deviceIdDescriptor
             .Identifiers

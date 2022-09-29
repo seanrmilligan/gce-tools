@@ -34,7 +34,7 @@ namespace Google.Cloud.Storage
         if (options.StorageDeviceIdDescriptor)
         {
           Console.WriteLine(string.Join(Environment.NewLine,
-            devices.Select(d => d.GetDeviceIdDescriptor())));
+            devices.Select(d => d.GetStorageDeviceIdDescriptor())));
           return;
         }
         

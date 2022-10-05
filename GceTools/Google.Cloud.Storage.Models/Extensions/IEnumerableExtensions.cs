@@ -1,4 +1,4 @@
-﻿namespace Google.Cloud.Storage.Extensions
+﻿namespace Google.Cloud.Storage.Models.Extensions
 {
     public static class IEnumerableExtensions
     {

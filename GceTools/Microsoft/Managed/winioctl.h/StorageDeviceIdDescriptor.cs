@@ -1,6 +1,6 @@
 using Microsoft.Native.winioctl.h;
 
-namespace Google.Cloud.Storage.Models;
+namespace Microsoft.Managed.winioctl.h;
 
 /// <summary>
 /// A managed (as opposed to native, unmanaged memory) wrapper of a

@@ -1,12 +1,12 @@
 using System.Text;
 using System.Text.Json;
-using Google.Cloud.Storage.Extensions;
-using Google.Cloud.Storage.Models;
+using Google.Cloud.Storage.Models.Extensions;
+using Microsoft.Managed.winioctl.h;
 using Microsoft.Native.nvme.h;
 using Microsoft.Native.winioctl.h;
 using NVMe.ScsiTranslation.v1_5;
 
-namespace Google.Cloud.Storage;
+namespace Google.Cloud.Storage.Models;
 
 public class GoogleStorageDevice : StorageDevice
 {
@@ -83,13 +83,12 @@ public class GoogleStorageDevice : StorageDevice
     {
         StorageDeviceIdDescriptor deviceIdDescriptor = GetStorageDeviceIdDescriptor();
 
-        string persistentDiskName = deviceIdDescriptor
-            .Identifiers
-            .Where(storageIdentifier =>
-                storageIdentifier.Type == STORAGE_IDENTIFIER_TYPE.StorageIdTypeVendorId &&
-                storageIdentifier.Association == STORAGE_ASSOCIATION_TYPE.StorageIdAssocDevice)
-            .Select(storageIdentifier => Encoding.ASCII.GetString(storageIdentifier.Identifier))
-            .FirstOrDefault(name => name.StartsWith(GoogleScsiPrefix))
+        string persistentDiskName = Enumerable.FirstOrDefault<string>(deviceIdDescriptor
+                .Identifiers
+                .Where(storageIdentifier =>
+                    storageIdentifier.Type == STORAGE_IDENTIFIER_TYPE.StorageIdTypeVendorId &&
+                    storageIdentifier.Association == STORAGE_ASSOCIATION_TYPE.StorageIdAssocDevice)
+                .Select(storageIdentifier => Encoding.ASCII.GetString((byte[])storageIdentifier.Identifier)), name => name.StartsWith(GoogleScsiPrefix))
             ?.Substring(GoogleScsiPrefix.Length) ?? throw new InvalidOperationException(
             message: $"DeviceId {Id} is not a GCE PD");
 

@@ -1,11 +1,16 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Google.Cloud.Storage.Extensions;
+namespace Google.Cloud.Storage.Models.Extensions;
 
 public static class ByteArrayExtensions
 {
     private static char[] _hex = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
+    public static string ToAsciiString(this byte[] array)
+    {
+        return array.ToAsciiString(0);
+    }
     
     public static string ToAsciiString(this byte[] array, uint offset)
     {

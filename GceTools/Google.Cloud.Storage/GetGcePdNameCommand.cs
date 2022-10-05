@@ -9,27 +9,15 @@
 //     Studio will not overwrite the .dll while the powershell that imported it
 //     is still running.
 
-using System.Collections.Generic;
-using System.Linq;
-using Google.Cloud.Storage.Extensions;
+using System.ComponentModel;
+using Google.Cloud.Storage.Models;
 
 namespace Google.Cloud.Storage
 {
-  using System;  // for InvalidOperationException
-  using System.ComponentModel;  // for Win32Exception
-  // To get System.Management.Automation, right-click on References in the
-  // Solution Explorer and choose Manage NuGet Packages. On the Browse tab search
-  // for "powershell reference" and install the official Microsoft
-  // "Microsoft.Powershell.5.ReferenceAssemblies" package (the one with the most
-  // downloads). See:
-  //   https://blogs.msdn.microsoft.com/powershell/2015/12/11/powershell-sdk-reference-assemblies-available-via-nuget-org/
-  // and perhaps:
-  //   https://github.com/PowerShell/PowerShell/issues/2284#issuecomment-247655190
+
+
   using System.Management.Automation;
 
-  #region GetGcePdNameCommand
-
-  // https://docs.microsoft.com/en-us/powershell/developer/cmdlet/cmdlet-class-declaration
   [Cmdlet(VerbsCommon.Get, "GoogleDiskName")]
   public class GetGoogleDiskNameCommand : Cmdlet
   {
@@ -44,17 +32,13 @@ namespace Google.Cloud.Storage
     //   Get-GcePdName 1,3,5
     //   @(1,3,5) | Get-GcePdName
     //   Get-PhysicalDisk | Get-GcePdName
-    private IEnumerable<string> _deviceIds;
+    
     [Parameter(
       Position = 0,
       ValueFromPipeline = true,
       ValueFromPipelineByPropertyName = true)]
     [ValidateNotNullOrEmpty]
-    public IEnumerable<string> DeviceId
-    {
-      get => _deviceIds;
-      set => _deviceIds = value;
-    }
+    public List<string>? DeviceIds { get; set; }
     #endregion Parameters
 
     #region PdName
@@ -66,10 +50,8 @@ namespace Google.Cloud.Storage
     // https://docs.microsoft.com/en-us/powershell/developer/cmdlet/creating-a-cmdlet-to-access-a-data-store#code-sample
     public class PdName
     {
-      // This is an "auto property"
       public string Name { get; set; }
 
-      // This is an "auto property"
       public string DeviceId { get; set; }
 
       public override string ToString()
@@ -82,35 +64,23 @@ namespace Google.Cloud.Storage
     #region Cmdlet Overrides
     protected override void ProcessRecord()
     {
-      if (_deviceIds == null)
-      {
-        // List all physical drives if none specified.
-        _deviceIds = StorageDevice.GetAllPhysicalDeviceIds();
-        //if (_deviceIds.None())
-        //{
-        //  var ex = new InvalidOperationException(
-        //    "No device IDs specified and no physical drives were found");
-        //  WriteError(new ErrorRecord(ex, ex.ToString(),
-        //    ErrorCategory.InvalidOperation, ""));
-        //  return;
-        //}
-      }
+      List<GoogleStorageDevice> devices = Program.GetAllDevices(DeviceIds);
 
-      foreach (string deviceId in _deviceIds)
+      foreach (GoogleStorageDevice device in devices)
       {
         try
         {
           PdName pd = new PdName
           {
-            Name = string.Empty, //new StorageDevice(deviceId).NvmeIdentify(NVME_IDENTIFY_CNS_CODES.NVME_IDENTIFY_CNS_SPECIFIC_NAMESPACE),
-            DeviceId = deviceId
+            Name = device.GetDeviceName(),
+            DeviceId = device.Id
           };
           WriteObject(pd);
         }
         catch (Win32Exception ex)
         {
           WriteError(new ErrorRecord(ex, ex.ToString(),
-              ErrorCategory.ReadError, deviceId));
+              ErrorCategory.ReadError, device.Id));
         }
         catch (InvalidOperationException)
         {
@@ -121,5 +91,4 @@ namespace Google.Cloud.Storage
     }
     #endregion Cmdlet Overrides
   }
-  #endregion GetGcePdNameCommand
 }

@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel;
-using System.Text.Json;
 using CommandLine;
-using Google.Cloud.Storage.Extensions;
-using Microsoft.Native.nvme.h;
+using Google.Cloud.Storage.Models;
+using Google.Cloud.Storage.Models.Extensions;
 
 namespace Google.Cloud.Storage
 {
@@ -15,26 +14,25 @@ namespace Google.Cloud.Storage
       Parser.Default.ParseArguments<GceToolOptions>(args).WithParsed(options =>
       {
         Verbose = options.Verbose;
-        IEnumerable<GoogleStorageDevice> devices = GetAllDevices(options.DeviceIds);
+        List<GoogleStorageDevice> devices = GetAllDevices(options.DeviceIds.ToList())
+          .ToList();
 
         if (options.BusType)
         {
-          Console.WriteLine(string.Join(Environment.NewLine,
-            devices.Select(d => d.GetBusType())));
-          return;
+          Console.WriteLine(string.Join(Environment.NewLine, devices
+            .Select(d => d.GetBusType())));
         }
         
         if (options.StorageAdapterDescriptor)
         {
-          Console.WriteLine(string.Join(Environment.NewLine,
-            devices.Select(d => d.GetStorageAdapterDescriptor())));
-          return;
+          Console.WriteLine(string.Join(Environment.NewLine, devices
+            .Select(d => d.GetStorageAdapterDescriptor())));
         }
 
         if (options.StorageDeviceIdDescriptor)
         {
-          Console.WriteLine(string.Join(Environment.NewLine,
-            devices.Select(d => d.GetStorageDeviceIdDescriptor())));
+          Console.WriteLine(string.Join(Environment.NewLine, devices
+            .Select(d => d.GetStorageDeviceIdDescriptor())));
           return;
         }
         
@@ -44,31 +42,32 @@ namespace Google.Cloud.Storage
       });
     }
 
-    public static IEnumerable<GoogleStorageDevice> GetAllDevices(IEnumerable<string> deviceIds)
+    public static List<GoogleStorageDevice> GetAllDevices(List<string> deviceIds)
     {
-      if (deviceIds.None())
-      {
-        WriteDebugLine("No device IDs specified. Retrieving list of physical devices.");
-
-        // List all physical drives if none specified.
-        deviceIds = StorageDevice.GetAllPhysicalDeviceIds().ToList();
-
-        if (deviceIds.None())
-        {
-          WriteDebugLine("No physical devices were found.");
-          return Enumerable.Empty<GoogleStorageDevice>();
-        }
-      }
+      if (deviceIds.Any())
+        return deviceIds
+          .Select(deviceId => new GoogleStorageDevice(deviceId))
+          .ToList();
       
-      return deviceIds
-        .Select(deviceId => new GoogleStorageDevice(deviceId))
-        .ToList();
+      WriteDebugLine("No device IDs specified. Retrieving list of physical devices.");
+
+      // List all physical drives if none specified.
+      deviceIds = StorageDevice.GetAllPhysicalDeviceIds().ToList();
+
+      if (deviceIds.Any())
+        return deviceIds
+          .Select(deviceId => new GoogleStorageDevice(deviceId))
+          .ToList();
+      
+      WriteDebugLine("No physical devices were found.");
+      
+      return new List<GoogleStorageDevice>();
     }
 
     public static Dictionary<string, IEnumerable<NamespaceIdMetadata>> GetNamespacesByController(IEnumerable<GoogleStorageDevice> devices)
     {
       return devices
-        .GroupBy(device => device.NvmeIdentifyController().SN.ToAsciiString(0))
+        .GroupBy(device => device.NvmeIdentifyController().SN.ToAsciiString())
         .ToDictionary(group => group.Key,
           group => Enumerable.Range(1, 1024)
             .Select(namespaceId =>

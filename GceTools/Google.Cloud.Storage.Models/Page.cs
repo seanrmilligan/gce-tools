@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Google.Cloud.Storage;
+namespace Google.Cloud.Storage.Models;
 
 [StructLayout(LayoutKind.Explicit, Size = 4096)]
 public readonly struct Page

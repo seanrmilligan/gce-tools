@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Google.Cloud.Storage.Extensions
+namespace Google.Cloud.Storage.Models.Extensions
 {
     public static class StructExtensions
     {

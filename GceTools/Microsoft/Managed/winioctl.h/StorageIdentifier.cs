@@ -1,7 +1,7 @@
 using System.Text;
 using Microsoft.Native.winioctl.h;
 
-namespace Google.Cloud.Storage.Models;
+namespace Microsoft.Managed.winioctl.h;
 
 public class StorageIdentifier
 {

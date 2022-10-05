@@ -2,8 +2,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Management;
 using System.Runtime.InteropServices;
-using Google.Cloud.Storage.Extensions;
-using Google.Cloud.Storage.Models;
+using Google.Cloud.Storage.Models.Extensions;
+using Microsoft.Managed.winioctl.h;
 using Microsoft.Native.fileapi.h;
 using Microsoft.Native.kernel32.h;
 using Microsoft.Native.nvme.h;
@@ -11,7 +11,7 @@ using Microsoft.Native.winioctl.h;
 using Microsoft.Native.winnt.h;
 using Microsoft.Win32.SafeHandles;
 
-namespace Google.Cloud.Storage
+namespace Google.Cloud.Storage.Models
 {
   [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
   public class StorageDevice
@@ -21,7 +21,7 @@ namespace Google.Cloud.Storage
     
     private static uint IOCTL_STORAGE_QUERY_PROPERTY = ControlCodes.IOCTL_STORAGE_QUERY_PROPERTY;
 
-    protected readonly string Id;
+    public readonly string Id;
     private readonly SafeFileHandle _hDevice;
     
     public string PhysicalDrive => PhysicalDrivePrefix + Id;
@@ -374,10 +374,9 @@ namespace Google.Cloud.Storage
       WqlObjectQuery query = new("SELECT * FROM Win32_DiskDrive");
       using (ManagementObjectSearcher searcher = new(query))
       {
-        physicalDrives = searcher.Get()
-          .OfType<ManagementObject>()
-          .Select(o => o.Properties["DeviceID"].Value.ToString())
-          .Where(id => !string.IsNullOrEmpty(id))!;
+        physicalDrives = Enumerable.Where<string?>(searcher.Get()
+            .OfType<ManagementObject>()
+            .Select(o => o.Properties["DeviceID"].Value.ToString()), id => !string.IsNullOrEmpty(id))!;
       }
       
       // Strip off '\\.\PHYSICALDRIVE' prefix

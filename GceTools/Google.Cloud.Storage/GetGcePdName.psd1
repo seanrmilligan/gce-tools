@@ -3,10 +3,10 @@
 @{
 
 # Script module or binary module file associated with this manifest
-RootModule = 'GetGcePdName'
+RootModule = 'GoogleStorageUtilities'
 
 # Version number of this module.
-ModuleVersion = '1.0'
+ModuleVersion = '1.1'
 
 # ID used to uniquely identify this module
 GUID = 'e7d078a4-2b46-11e9-8c73-9b191469b7b0'

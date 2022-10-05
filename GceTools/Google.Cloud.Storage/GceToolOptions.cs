@@ -16,6 +16,9 @@ public class GceToolOptions
     [Option(longName: "bus-type")]
     public bool BusType { get; set; }
     
+    [Option(longName: "google-device-name")]
+    public bool GoogleDeviceName { get; set; }
+    
     [Option(longName: "nvme-identify-active-namespaces")]
     public bool NvmeIdentifyActiveNamespaces { get; set; }
     

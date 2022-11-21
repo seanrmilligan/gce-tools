@@ -1,4 +1,6 @@
-﻿namespace Microsoft.Native.nvme.h;
+﻿using System;
+
+namespace Microsoft.Native.nvme.h;
 
 /// <summary>
 /// Autonomous Power State Transition Attributes (APSTA)

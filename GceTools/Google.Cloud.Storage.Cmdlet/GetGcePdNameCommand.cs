@@ -10,8 +10,7 @@
 //     is still running.
 
 using System.Collections.Generic;
-using System.Linq;
-using Google.Cloud.Storage.Extensions;
+using Google.Cloud.Storage.Models;
 
 namespace Google.Cloud.Storage
 {

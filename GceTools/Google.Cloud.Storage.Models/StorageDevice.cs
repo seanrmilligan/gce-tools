@@ -1,9 +1,11 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
 using Google.Cloud.Storage.Extensions;
-using Google.Cloud.Storage.Models;
 using Microsoft.Native.fileapi.h;
 using Microsoft.Native.kernel32.h;
 using Microsoft.Native.nvme.h;
@@ -11,7 +13,7 @@ using Microsoft.Native.winioctl.h;
 using Microsoft.Native.winnt.h;
 using Microsoft.Win32.SafeHandles;
 
-namespace Google.Cloud.Storage
+namespace Google.Cloud.Storage.Models
 {
   [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
   public class StorageDevice

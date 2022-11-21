@@ -1,4 +1,7 @@
-﻿namespace Google.Cloud.Storage.Extensions
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace Google.Cloud.Storage.Extensions
 {
     public static class IEnumerableExtensions
     {

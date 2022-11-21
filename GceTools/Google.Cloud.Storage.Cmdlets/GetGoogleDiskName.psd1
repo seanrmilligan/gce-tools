@@ -3,10 +3,10 @@
 @{
 
 # Script module or binary module file associated with this manifest
-RootModule = 'GetGcePdName'
+RootModule = 'GetGoogleDiskName.dll'
 
 # Version number of this module.
-ModuleVersion = '1.0'
+ModuleVersion = '1.1'
 
 # ID used to uniquely identify this module
 GUID = 'e7d078a4-2b46-11e9-8c73-9b191469b7b0'
@@ -21,7 +21,7 @@ CompanyName = 'Google'
 # Description = ''
 
 # Minimum version of the Windows PowerShell engine required by this module
-# PowerShellVersion = ''
+PowerShellVersion = '7.0'
 
 # Name of the Windows PowerShell host required by this module
 # PowerShellHostName = ''
@@ -30,7 +30,7 @@ CompanyName = 'Google'
 # PowerShellHostVersion = ''
 
 # Minimum version of the .NET Framework required by this module
-# DotNetFrameworkVersion = ''
+DotNetFrameworkVersion = '6.0'
 
 # Minimum version of the common language runtime (CLR) required by this module
 # CLRVersion = ''

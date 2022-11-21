@@ -11,11 +11,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft", "Microsoft\Micr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NVMe", "NVMe\NVMe.csproj", "{7FD10665-D3DF-40A7-A914-5CE21CFC2625}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Cloud.Storage.Cmdlet", "Google.Cloud.Storage.Cmdlet\Google.Cloud.Storage.Cmdlet.csproj", "{82DF4875-F913-44F2-B8F8-AAC0D04B20D4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Cloud.Storage.Cmdlets", "Google.Cloud.Storage.Cmdlets\Google.Cloud.Storage.Cmdlets.csproj", "{82DF4875-F913-44F2-B8F8-AAC0D04B20D4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Cloud.Storage.Models", "Google.Cloud.Storage.Models\Google.Cloud.Storage.Models.csproj", "{7FAEF243-D06A-43A4-A978-8CA6D80E6223}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Cloud.Storage.Cmdlet.Engine", "Google.Cloud.Storage.Cmdlet.Engine\Google.Cloud.Storage.Cmdlet.Engine.csproj", "{B012A84C-B41C-4DBB-A581-C6AD11991DD1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Cloud.Storage.Cmdlets.Engine", "Google.Cloud.Storage.Cmdlets.Engine\Google.Cloud.Storage.Cmdlets.Engine.csproj", "{B012A84C-B41C-4DBB-A581-C6AD11991DD1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

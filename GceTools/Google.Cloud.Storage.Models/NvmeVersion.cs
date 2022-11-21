@@ -1,4 +1,4 @@
-namespace Google.Cloud.Storage;
+namespace Google.Cloud.Storage.Models;
 
 public enum NvmeVersion : uint
 {

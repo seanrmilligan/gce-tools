@@ -9,13 +9,14 @@
 //     Studio will not overwrite the .dll while the powershell that imported it
 //     is still running.
 
-using System.Collections.Generic;
+using System.ComponentModel;
+using System.Management.Automation;
 using Google.Cloud.Storage.Models;
 
-namespace Google.Cloud.Storage
+namespace Google.Cloud.Storage.Cmdlet
 {
-  using System;  // for InvalidOperationException
-  using System.ComponentModel;  // for Win32Exception
+  // for InvalidOperationException
+  // for Win32Exception
   // To get System.Management.Automation, right-click on References in the
   // Solution Explorer and choose Manage NuGet Packages. On the Browse tab search
   // for "powershell reference" and install the official Microsoft
@@ -24,13 +25,12 @@ namespace Google.Cloud.Storage
   //   https://blogs.msdn.microsoft.com/powershell/2015/12/11/powershell-sdk-reference-assemblies-available-via-nuget-org/
   // and perhaps:
   //   https://github.com/PowerShell/PowerShell/issues/2284#issuecomment-247655190
-  using System.Management.Automation;
 
   #region GetGcePdNameCommand
 
   // https://docs.microsoft.com/en-us/powershell/developer/cmdlet/cmdlet-class-declaration
   [Cmdlet(VerbsCommon.Get, "GoogleDiskName")]
-  public class GetGoogleDiskNameCommand : Cmdlet
+  public class GetGoogleDiskNameCommand : System.Management.Automation.Cmdlet
   {
     #region Parameters
     /// <summary>

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Google.Cloud.Storage;
+namespace Google.Cloud.Storage.Models;
 
 public class NamespaceIdMetadata
 {

@@ -1,3 +1,5 @@
+using System;
+
 namespace Microsoft.Native.winnt.h;
 
 [Flags]

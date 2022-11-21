@@ -1,5 +1,6 @@
 ﻿// https://docs.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-storage_adapter_descriptor
 
+using System;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.Native.winioctl.h

@@ -3,17 +3,16 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>false</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="System.Management" Version="6.0.0" />
-    <PackageReference Include="System.Management.Automation" Version="7.2.6" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Google.Cloud.Storage.Models\Google.Cloud.Storage.Models.csproj" />
     <ProjectReference Include="..\Microsoft\Microsoft.csproj" />
     <ProjectReference Include="..\NVMe\NVMe.csproj" />
   </ItemGroup>

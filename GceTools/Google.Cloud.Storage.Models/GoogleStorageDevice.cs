@@ -1,14 +1,12 @@
-using System;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using Google.Cloud.Storage.Extensions;
-using Google.Cloud.Storage.Models;
+using Google.Cloud.Storage.Models.Extensions;
+using Microsoft.Managed.winioctl.h;
 using Microsoft.Native.nvme.h;
 using Microsoft.Native.winioctl.h;
 using NVMe.ScsiTranslation.v1_5;
 
-namespace Google.Cloud.Storage;
+namespace Google.Cloud.Storage.Models;
 
 public class GoogleStorageDevice : StorageDevice
 {

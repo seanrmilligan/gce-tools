@@ -1,3 +1,5 @@
+using System;
+
 namespace Microsoft.Native.storduid.h;
 
 public struct STORAGE_DEVICE_UNIQUE_IDENTIFIER

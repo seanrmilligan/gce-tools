@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Management.Automation;
-using Google.Cloud.Storage.Cmdlets.Engine;
 using Google.Cloud.Storage.Models;
+using Google.Cloud.Storage.Models.Extensions;
 
 namespace Google.Cloud.Storage.Cmdlets
 {
@@ -36,7 +36,26 @@ namespace Google.Cloud.Storage.Cmdlets
     {
       try
       {
-        foreach (DiskNameEntry diskNameEntry in GetGoogleDiskNameEngine.ProcessRecord(DeviceIds))
+        if (DeviceIds == null)
+        {
+          // List all physical drives if none specified.
+          DeviceIds = StorageDevice.GetAllPhysicalDeviceIds();
+          if (DeviceIds.None())
+          {
+            var ex = new InvalidOperationException(
+              "No device IDs specified and no physical drives were found");
+            WriteError(new ErrorRecord(ex, ex.ToString(),
+              ErrorCategory.InvalidOperation, DeviceIds));
+            return;
+          }
+        }
+
+       ;
+        foreach (DiskNameEntry diskNameEntry in DeviceIds.Select(deviceId => new DiskNameEntry
+        {
+         DeviceId = deviceId,
+         Name = new GoogleStorageDevice(deviceId).GetDeviceName()
+        }))
         {
           WriteObject(diskNameEntry);
         }

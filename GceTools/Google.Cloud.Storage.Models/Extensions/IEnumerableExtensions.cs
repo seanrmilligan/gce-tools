@@ -19,6 +19,11 @@
             return -1;
         }
         
+        public static bool IsNullOrEmpty<T>(this IEnumerable<T>? enumerable)
+        {
+            return enumerable == null || !enumerable.Any();
+        }
+        
         public static bool None<T>(this IEnumerable<T> enumerable)
         {
             return !enumerable.Any();

@@ -10,25 +10,30 @@ namespace Google.Cloud.Storage.Cmdlets
   {
     #region Parameters
     /// <summary>
-    /// List of physical disk numbers.
+    /// A list of physical disk numbers.
     /// </summary>
-    // The type is string to match the DeviceId property from Get-PhysicalDisk
-    // (Microsoft.Management.Infrastructure.CimInstance#root/microsoft/windows/storage/MSFT_PhysicalDisk).
-    // The Parameter declaration here supports specifying the list of disk
-    // numbers in three ways:
-    //   Get-GcePdName 1,3,5
-    //   @(1,3,5) | Get-GcePdName
-    //   Get-PhysicalDisk | Get-GcePdName
-    private IEnumerable<string> _deviceIds;
+    /// <remarks>
+    /// The type is string to match the DeviceId property from Get-PhysicalDisk.
+    /// See Microsoft.Management.Infrastructure.CimInstance#root/microsoft/windows/storage/MSFT_PhysicalDisk
+    /// for more on this type.
+    /// The Parameter declaration here supports specifying the list of disk
+    /// numbers in three ways:
+    ///   Get-GoogleDiskName 1,3,5
+    ///   @(1,3,5) | Get-GoogleDiskName
+    ///   Get-PhysicalDisk | Get-GoogleDiskName
+    /// Despite being an IEnumerable, the name cannot be pluralized and must be
+    /// "DeviceId" to match the property outputted by Get-PhysicalDisk.
+    /// </remarks>
+    private IEnumerable<string> _deviceId;
     [Parameter(
       Position = 0,
       ValueFromPipeline = true,
       ValueFromPipelineByPropertyName = true)]
     [ValidateNotNullOrEmpty]
-    public IEnumerable<string> DeviceIds
+    public IEnumerable<string> DeviceId
     {
-      get => _deviceIds;
-      set => _deviceIds = value;
+      get => _deviceId;
+      set => _deviceId = value;
     }
     #endregion Parameters
 
@@ -36,39 +41,40 @@ namespace Google.Cloud.Storage.Cmdlets
     {
       try
       {
-        if (DeviceIds == null)
+        // List all physical drives if none were specified.
+        if (DeviceId.IsNullOrEmpty())
         {
-          // List all physical drives if none specified.
-          DeviceIds = StorageDevice.GetAllPhysicalDeviceIds();
-          if (DeviceIds.None())
-          {
-            var ex = new InvalidOperationException(
-              "No device IDs specified and no physical drives were found");
-            WriteError(new ErrorRecord(ex, ex.ToString(),
-              ErrorCategory.InvalidOperation, DeviceIds));
-            return;
-          }
+          DeviceId = StorageDevice.GetAllPhysicalDeviceIds();
+        }
+        
+        // If there are still no DeviceId then we cannot proceed.
+        if (DeviceId.IsNullOrEmpty())
+        {
+          InvalidOperationException ex = new(message:
+            "No DeviceId(s) specified and no physical drives were found");
+          WriteError(new ErrorRecord(ex, ex.ToString(),
+            ErrorCategory.InvalidOperation, DeviceId));
+          return;
         }
 
-       ;
-        foreach (DiskNameEntry diskNameEntry in DeviceIds.Select(deviceId => new DiskNameEntry
+        foreach (string deviceId in DeviceId)
         {
-         DeviceId = deviceId,
-         Name = new GoogleStorageDevice(deviceId).GetDeviceName()
-        }))
-        {
-          WriteObject(diskNameEntry);
+          WriteObject(new DiskNameEntry
+          {
+            DeviceId = deviceId,
+            Name = new GoogleStorageDevice(deviceId).GetDeviceName()
+          });
         }
       }
       catch (Win32Exception ex)
       {
         WriteError(new ErrorRecord(ex, ex.ToString(),
-          ErrorCategory.ReadError, 123));
+          ErrorCategory.ReadError, null));
       }
-      catch (InvalidOperationException)
+      catch (InvalidOperationException ex)
       {
-        // InvalidOperation indicates that the deviceId is not for a GCE PD;
-        // just ignore it.
+        WriteError(new ErrorRecord(ex, ex.ToString(),
+          ErrorCategory.ReadError, null));
       }
     }
   }

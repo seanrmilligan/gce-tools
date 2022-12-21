@@ -1,5 +1,5 @@
 ﻿// https://docs.microsoft.com/en-us/windows/win32/api/winioctl/ne-winioctl-storage_protocol_type
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) third_party.Microsoft Corporation. All rights reserved.
 
 namespace Microsoft.Native.winioctl.h
 {
@@ -24,7 +24,7 @@ namespace Microsoft.Native.winioctl.h
         ProtocolTypeAta = 2,
         
         /// <summary>
-        /// NVMe protocol type.
+        /// third_party.NVMe protocol type.
         /// </summary>
         ProtocolTypeNvme = 3,
         

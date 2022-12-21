@@ -7,8 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Microsoft\Microsoft.csproj" />
-      <ProjectReference Include="..\NVMe\NVMe.csproj" />
+      <ProjectReference Include="..\third_party\Microsoft\Microsoft.csproj" />
+      <ProjectReference Include="..\third_party\NVMe\NVMe.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -41,7 +41,7 @@ public class GoogleStorageDevice : StorageDevice
             STORAGE_BUS_TYPE.BusTypeNvme => GetNvmeDeviceName(),
             STORAGE_BUS_TYPE.BusTypeScsi => GetScsiDeviceName(),
             _ => throw new InvalidOperationException(
-                message: "Unsupported device type. Device must be attached as an NVMe or SCSI device.")
+                message: "Unsupported device type. Device must be attached as an third_party.NVMe or SCSI device.")
         };
     }
 
@@ -61,7 +61,7 @@ public class GoogleStorageDevice : StorageDevice
             
             // On Windows Builds 1903 or later, we would expect this to NOT be
             // an NvmeV1BasedScsiNameString when the NvmeVersion is greater than
-            // 1.0 due to StorNVMe on 1903 or later complying with SCSI-NVMe
+            // 1.0 due to StorNVMe on 1903 or later complying with SCSI-third_party.NVMe
             // Translation Layer (SNTL) Reference Revision 1.5. However, for
             // builds prior to 1903 we are observing a return value with the
             // shape of an NvmeV1BasedScsiNameString.
@@ -84,7 +84,7 @@ public class GoogleStorageDevice : StorageDevice
                 .ToAsciiString(0)),
             
             _ => throw new NotSupportedException(
-                message: $"NVMe versions prior to v1.0 are not supported by this application. {PhysicalDrive} reported NVMe Version {controller.VER}.")
+                message: $"third_party.NVMe versions prior to v1.0 are not supported by this application. {PhysicalDrive} reported third_party.NVMe Version {controller.VER}.")
         };
     }
 
@@ -113,7 +113,7 @@ public class GoogleStorageDevice : StorageDevice
     public NamespaceIdMetadata GetNvmeNamespaceIdMetadata(uint namespaceId)
     {
         // Google writes metadata about the disk as a JSON string to the start
-        // of the vendor-specific (VS) section of the NVMe Identify Specific
+        // of the vendor-specific (VS) section of the third_party.NVMe Identify Specific
         // Namespace response struct.
         return JsonSerializer.Deserialize<NamespaceIdMetadata>(json: 
             NvmeIdentifySpecificNamespace(namespaceId)

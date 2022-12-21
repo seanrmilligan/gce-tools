@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) third_party.Microsoft Corporation. All rights reserved.
 
 // Adapted from winioctl.h
 namespace Microsoft.Native.winioctl.h

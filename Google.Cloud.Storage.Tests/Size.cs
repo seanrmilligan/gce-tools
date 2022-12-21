@@ -41,7 +41,7 @@ namespace Google.Cloud.Storage.Tests
             // of size 1. In order to avoid the complexities of marhsalling
             // variable size arrays, we declare the array at the end to be 1024
             // bytes, making the struct marshal as 1023 bytes larger than
-            // expected per the Microsoft documentation.
+            // expected per the third_party.Microsoft documentation.
             //
             // Therefore, the expected size is 40 bytes + 1023 bytes = 1063 bytes
             STORAGE_DEVICE_DESCRIPTOR example = default;
@@ -79,7 +79,7 @@ namespace Google.Cloud.Storage.Tests
             // of size 1. In order to avoid the complexities of marhsalling
             // variable size arrays, we declare the array at the end to be 512
             // bytes, making the struct marshal as 511 bytes larger than
-            // expected per the Microsoft documentation.
+            // expected per the third_party.Microsoft documentation.
             //
             // Therefore, the expected size is 13 bytes + 511 bytes = 524 bytes
             STORAGE_DEVICE_ID_DESCRIPTOR example = default;

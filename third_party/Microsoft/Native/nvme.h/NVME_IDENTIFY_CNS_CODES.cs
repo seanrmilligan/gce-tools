@@ -1,5 +1,5 @@
 ﻿// https://docs.microsoft.com/en-us/windows/win32/api/nvme/ne-nvme-nvme_identify_cns_codes
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) third_party.Microsoft Corporation. All rights reserved.
 
 namespace Microsoft.Native.nvme.h
 {

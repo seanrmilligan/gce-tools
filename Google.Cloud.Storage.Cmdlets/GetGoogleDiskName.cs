@@ -28,7 +28,7 @@ namespace Google.Cloud.Storage.Cmdlets
     /// </summary>
     /// <remarks>
     /// The type is string to match the DeviceId property from Get-PhysicalDisk.
-    /// See Microsoft.Management.Infrastructure.CimInstance#root/microsoft/windows/storage/MSFT_PhysicalDisk
+    /// See third_party.Microsoft.Management.Infrastructure.CimInstance#root/microsoft/windows/storage/MSFT_PhysicalDisk
     /// for more on this type.
     /// The Parameter declaration here supports specifying the list of disk
     /// numbers in three ways:

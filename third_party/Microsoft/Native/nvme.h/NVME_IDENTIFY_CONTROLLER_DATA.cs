@@ -105,7 +105,7 @@ public readonly struct NVME_IDENTIFY_CONTROLLER_DATA
     
     [FieldOffset(240)]
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
-    public readonly Byte[] ReservedForManagement;     // byte 240:255.  Refer to the NVMe Management Interface Specification for definition.
+    public readonly Byte[] ReservedForManagement;     // byte 240:255.  Refer to the third_party.NVMe Management Interface Specification for definition.
 
     //
     // byte 256 : 511, Admin Command Set Attributes

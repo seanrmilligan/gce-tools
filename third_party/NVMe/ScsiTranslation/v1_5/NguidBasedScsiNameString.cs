@@ -3,12 +3,12 @@ using System.Runtime.InteropServices;
 namespace NVMe.ScsiTranslation.v1_5;
 
 /// <summary>
-/// Represents a translation of an NVMe v1.1+ compliant device into a SCSI Name
+/// Represents a translation of an third_party.NVMe v1.1+ compliant device into a SCSI Name
 /// String as defined by NVM Express: SCSI Translation Reference, Revision 1.5,
 /// Section 6.1.4.4.1.1
 /// </summary>
 /// <remarks>
-/// This variant is used when the NVMe EUI64 Field is zero and the NVMe NGUID
+/// This variant is used when the third_party.NVMe EUI64 Field is zero and the third_party.NVMe NGUID
 /// Field is non-zero. This variant may also be used when both fields are
 /// non-zero.
 /// </remarks>

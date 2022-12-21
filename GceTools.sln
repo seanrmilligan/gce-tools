@@ -7,9 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Cloud.Storage", "Goo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Cloud.Storage.Tests", "Google.Cloud.Storage.Tests\Google.Cloud.Storage.Tests.csproj", "{EAAEEEE3-DDB1-4E80-9F0E-BBCB031F3AB9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft", "Microsoft\Microsoft.csproj", "{B1FB0E67-56B4-40D7-A7BB-3F5BDAC0C01B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft", "third_party\Microsoft\Microsoft.csproj", "{B1FB0E67-56B4-40D7-A7BB-3F5BDAC0C01B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NVMe", "NVMe\NVMe.csproj", "{7FD10665-D3DF-40A7-A914-5CE21CFC2625}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NVMe", "third_party\NVMe\NVMe.csproj", "{7FD10665-D3DF-40A7-A914-5CE21CFC2625}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Cloud.Storage.Cmdlets", "Google.Cloud.Storage.Cmdlets\Google.Cloud.Storage.Cmdlets.csproj", "{82DF4875-F913-44F2-B8F8-AAC0D04B20D4}"
 EndProject

@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Google.Cloud.Storage\Google.Cloud.Storage.csproj" />
+    <ProjectReference Include="..\third_party\Microsoft\Microsoft.csproj" />
   </ItemGroup>
 
 </Project>

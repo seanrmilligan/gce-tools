@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) third_party.Microsoft Corporation. All rights reserved.
 // https://docs.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-storage_device_descriptor
 
 using System;

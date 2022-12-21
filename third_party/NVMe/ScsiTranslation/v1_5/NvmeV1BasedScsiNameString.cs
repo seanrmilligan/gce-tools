@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace NVMe.ScsiTranslation.v1_5;
 
 /// <summary>
-/// Represents a translation of an NVMe v1.0 compliant device into a SCSI Name
+/// Represents a translation of an third_party.NVMe v1.0 compliant device into a SCSI Name
 /// String as defined by NVM Express: SCSI Translation Reference, Revision 1.5,
 /// Section 6.1.4.4.1.3
 /// </summary>
